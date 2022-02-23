@@ -183,25 +183,21 @@ variable "default_root_object" {
 }
 
 variable "s3_origin" {
-  description = "s3 Origin Configuration"
+  description = "Specify configuration related to Origin S3"
   type = object({
-    path_pattern                      = string # Specifies the Headers, if any, that you want CloudFront to vary upon for the cache behavior. Specify `*` to include all headers. 'none' is not a valid option for HTTPS connection
+    path_pattern                      = string
     allowed_methods                   = list(string)
     cached_methods                    = list(string)
     origin_domain_name                = string
     origin_id                         = string
-    # forward_cookies                   = string       # Specifies whether you want CloudFront to forward cookies to the origin. Valid options are all, none or whitelist
-    # forward_cookies_whitelisted_names = list(string) # List of forwarded cookie names
-    # forward_query_string              = bool         # Forward query strings to the origin that is associated with this cache behavior
-    # cached_methods                    = list(string) # List of cached methods (e.g. ` GET, PUT, POST, DELETE, HEAD`)
   })
   default = null
 }
 
 variable "lambda_function_association"{
-  description = "lambda_function_association configuration"
+  description = "The lambda assosiation used with encrypted s3"
   type = object({
-    event_type                        = string # Specifies the Headers, if any, that you want CloudFront to vary upon for the cache behavior. Specify `*` to include all headers. 'none' is not a valid option for HTTPS connection
+    event_type                        = string
     lambda_arn                        = string
     include_body                      = bool
   })
