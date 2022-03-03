@@ -1,3 +1,8 @@
+data "aws_route53_zone" "hosted_zone" {
+  name         = var.route53_domain_name
+  private_zone = false
+}
+
 resource "aws_cloudfront_distribution" "distribution" {
 
   enabled = true
@@ -165,7 +170,7 @@ resource "aws_cloudfront_distribution" "distribution" {
   }
 
   tags = merge({
-    Name = "${var.base_name}-distribution"
+    Name = local.resource_name
   }, var.custom_tags)
 
   viewer_certificate {
@@ -178,10 +183,11 @@ resource "aws_cloudfront_distribution" "distribution" {
   logging_config {
     include_cookies = var.log_include_cookies
     bucket          = "${var.log_aggregation_s3_bucket_name}.s3.amazonaws.com"
-    prefix          = "${var.account_alias}/${var.base_name}-cloudfront"
+    prefix          = "${var.account_alias}/${local.resource_name}-cloudfront"
   }
 
   # web_acl_id = module.waf_cf.global_web_acl_id
 
-  comment = "Managed by terraform"
+  # comment = "Managed by terraform" #<customer-prefix>-<env>-<paas>-cf
+  comment = local.resource_name
 }

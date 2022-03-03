@@ -17,10 +17,26 @@ variable "secondary_origin_config" {
   default = null
 }
 
-variable "base_name" {
+variable "name" {
   description = "[Required] Name prefix used for resource naming in this component"
   type        = string
 }
+
+variable "prefix" {
+  description = "[Required] Name prefix used for resource naming in this component"
+  type        = string
+}
+
+variable "environment" {
+  description = "[Required] Name prefix used for resource naming in this component"
+  type        = string
+}
+
+
+# variable "base_name" {
+#   description = "[Required] Name prefix used for resource naming in this component"
+#   type        = string
+# }
 
 variable "account_alias" {
   description = "Alias of the AWS account where this service is created. Eg. alpha/beta/prod. This would be used create s3 bucket path in the logging account"
@@ -185,21 +201,21 @@ variable "default_root_object" {
 variable "s3_origin" {
   description = "Specify configuration related to Origin S3"
   type = object({
-    path_pattern                      = string
-    allowed_methods                   = list(string)
-    cached_methods                    = list(string)
-    origin_domain_name                = string
-    origin_id                         = string
+    path_pattern       = string
+    allowed_methods    = list(string)
+    cached_methods     = list(string)
+    origin_domain_name = string
+    origin_id          = string
   })
   default = null
 }
 
-variable "lambda_function_association"{
+variable "lambda_function_association" {
   description = "The lambda assosiation used with encrypted s3"
   type = object({
-    event_type                        = string
-    lambda_arn                        = string
-    include_body                      = bool
+    event_type   = string
+    lambda_arn   = string
+    include_body = bool
   })
   default = null
 }

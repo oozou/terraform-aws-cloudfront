@@ -1,5 +1,5 @@
 resource "aws_iam_role" "main" {
-  name = "${var.base_name}-cloudfront-logs-access-role"
+  name = "${local.resource_name}-cloudfront-logs-access-role"
   path = "/"
 
   assume_role_policy = <<EOF
@@ -19,12 +19,12 @@ resource "aws_iam_role" "main" {
 EOF
 
   tags = merge({
-    Name = "${var.base_name}-cloudfront-logs-access-role"
+    Name = local.resource_name
   }, var.custom_tags)
 }
 
 resource "aws_iam_role_policy" "main" {
-  name = "${var.base_name}-cloudfront-logs-access-policy"
+  name = "${local.resource_name}-cloudfront-logs-access-policy"
   role = aws_iam_role.main.id
 
   policy = <<EOF
