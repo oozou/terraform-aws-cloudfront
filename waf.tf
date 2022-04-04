@@ -1,5 +1,5 @@
-module "waf_cf" {
-  count                           = local.enable_waf
+module "waf" {
+  count                           = var.is_enable_waf ? 1 : 0
   source                          = "git@github.com:oozou/terraform-aws-waf.git?ref=develop"
   name                            = var.name
   prefix                          = var.prefix

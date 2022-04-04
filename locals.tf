@@ -4,7 +4,5 @@ locals {
   is_origin_group                    = var.secondary_origin_config != null ? true : false
   enable_s3_origin                   = var.s3_origin != null ? true : false
   enable_lambda_function_association = var.lambda_function_association != null ? true : false
-
-  enable_waf    = var.is_enable_waf ? 1 : 0
-  resource_name = "${var.prefix}-${var.environment}-${var.name}-cf"
+  resource_name                      = "${var.prefix}-${var.environment}-${var.name}-cf"
 }
