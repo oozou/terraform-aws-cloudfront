@@ -186,7 +186,7 @@ resource "aws_cloudfront_distribution" "distribution" {
     prefix          = "${var.account_alias}/${local.resource_name}-cloudfront"
   }
 
-  web_acl_id = var.is_enable_waf ? module.waf_cf.global_web_acl_id : null
+  web_acl_id = var.is_enable_waf ? module.waf_cf.web_acl_id : null
 
   # comment = "Managed by terraform" #<customer-prefix>-<env>-<paas>-cf
   comment = local.resource_name
