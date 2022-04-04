@@ -219,3 +219,41 @@ variable "lambda_function_association" {
   })
   default = null
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                     WAF                                    */
+/* -------------------------------------------------------------------------- */
+variable "is_enable_waf" {
+  type        = bool
+  description = "Whether to enable WAF for CloudFront"
+  default     = false
+}
+
+variable "is_enable_waf_default_rule" {
+  type        = bool
+  description = "If true with enable default rule (detail in locals.tf)"
+  default     = true
+}
+
+variable "waf_ip_sets_rule" {
+  type = list(object({
+    name               = string
+    priority           = number
+    ip_set             = list(string)
+    action             = string
+    ip_address_version = string
+  }))
+  description = "A rule to detect web requests coming from particular IP addresses or address ranges."
+  default     = []
+}
+
+variable "waf_ip_rate_based_rule" {
+  type = object({
+    name     = string
+    priority = number
+    action   = string
+    limit    = number
+  })
+  description = "A rate-based rule tracks the rate of requests for each originating IP address, and triggers the rule action when the rate exceeds a limit that you specify on the number of requests in any 5-minute time span"
+  default     = null
+}

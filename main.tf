@@ -123,16 +123,16 @@ resource "aws_cloudfront_distribution" "distribution" {
       allowed_methods  = var.s3_origin.allowed_methods
       cached_methods   = var.s3_origin.cached_methods
       target_origin_id = var.s3_origin.origin_id #local.s3_origin_id
-  
+
       forwarded_values {
         query_string = false
         headers      = ["Origin"]
-  
+
         cookies {
           forward = "none"
         }
       }
-  
+
       min_ttl                = 0
       default_ttl            = 86400
       max_ttl                = 31536000
@@ -186,7 +186,7 @@ resource "aws_cloudfront_distribution" "distribution" {
     prefix          = "${var.account_alias}/${local.resource_name}-cloudfront"
   }
 
-  # web_acl_id = module.waf_cf.global_web_acl_id
+  web_acl_id = var.is_enable_waf ? module.waf_cf.global_web_acl_id : null
 
   # comment = "Managed by terraform" #<customer-prefix>-<env>-<paas>-cf
   comment = local.resource_name
