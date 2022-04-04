@@ -235,6 +235,52 @@ variable "is_enable_waf_default_rule" {
   default     = true
 }
 
+variable "waf_managed_rules" {
+  type = list(object({
+    name            = string
+    priority        = number
+    override_action = string
+    excluded_rules  = list(string)
+  }))
+  description = "List of Managed WAF rules."
+  default     = []
+}
+
+variable "waf_default_action" {
+  type        = string
+  description = "The action to perform if none of the rules contained in the WebACL match."
+  default     = "block"
+}
+
+variable "is_enable_waf_cloudwatch_metrics" {
+  type        = bool
+  description = "The action to perform if none of the rules contained in the WebACL match."
+  default     = true
+}
+
+variable "is_enable_waf_sampled_requests" {
+  type        = bool
+  description = "Whether AWS WAF should store a sampling of the web requests that match the rules. You can view the sampled requests through the AWS WAF console."
+  default     = true
+}
+
+variable "is_create_waf_logging_configuration" {
+  description = "Whether to create logging configuration in order start logging from a WAFv2 Web ACL to CloudWatch"
+  default     = true
+}
+
+variable "waf_redacted_fields" {
+  description = "The parts of the request that you want to keep out of the logs. Up to 100 `redacted_fields` blocks are supported."
+  type        = any
+  default     = []
+}
+
+variable "waf_logging_filter" {
+  type        = any
+  description = "A configuration block that specifies which web requests are kept in the logs and which are dropped. You can filter on the rule action and on the web request labels that were applied by matching rules during web ACL evaluation."
+  default     = {}
+}
+
 variable "waf_ip_sets_rule" {
   type = list(object({
     name               = string
