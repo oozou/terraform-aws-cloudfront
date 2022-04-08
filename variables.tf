@@ -206,6 +206,8 @@ variable "s3_origin" {
     cached_methods     = list(string)
     origin_domain_name = string
     origin_id          = string
+    is_create_aoi      = bool
+    s3_arn             = string
   })
   default = null
 }

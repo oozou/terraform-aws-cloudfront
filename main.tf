@@ -3,6 +3,27 @@ data "aws_route53_zone" "hosted_zone" {
   private_zone = false
 }
 
+data "aws_iam_policy_document" "s3_policy" {
+  statement {
+    actions   = ["s3:GetObject"]
+    resources = ["${var.s3_origin.bucket_arn}/*"]
+
+    principals {
+      type        = "AWS"
+      identifiers = [aws_cloudfront_origin_access_identity.cloudfront_s3_policy.iam_arn]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "cloudfront_s3_policy" {
+  bucket = var.s3_origin.origin_id
+  policy = data.aws_iam_policy_document.s3_policy.json
+}
+
+resource "aws_cloudfront_origin_access_identity" "aoi" {
+  comment = "Managed by terraform"
+}
+
 resource "aws_cloudfront_distribution" "distribution" {
 
   enabled = true
@@ -123,6 +144,7 @@ resource "aws_cloudfront_distribution" "distribution" {
       allowed_methods  = var.s3_origin.allowed_methods
       cached_methods   = var.s3_origin.cached_methods
       target_origin_id = var.s3_origin.origin_id #local.s3_origin_id
+      origin_access_identity = aws_cloudfront_origin_access_identity.aoi.cloudfront_access_identity_path
 
       forwarded_values {
         query_string = false
