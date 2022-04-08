@@ -6,7 +6,7 @@ data "aws_route53_zone" "hosted_zone" {
 data "aws_iam_policy_document" "s3_policy" {
   statement {
     actions   = ["s3:GetObject"]
-    resources = ["${var.s3_origin.bucket_arn}/*"]
+    resources = ["${var.s3_origin.s3_arn}/*"]
 
     principals {
       type        = "AWS"
@@ -102,6 +102,7 @@ resource "aws_cloudfront_distribution" "distribution" {
     content {
       domain_name = var.s3_origin.origin_domain_name
       origin_id   = var.s3_origin.origin_id
+      origin_access_identity = aws_cloudfront_origin_access_identity.cloudfront_s3_policy.cloudfront_access_identity_path
     }
   }
 
@@ -144,7 +145,7 @@ resource "aws_cloudfront_distribution" "distribution" {
       allowed_methods  = var.s3_origin.allowed_methods
       cached_methods   = var.s3_origin.cached_methods
       target_origin_id = var.s3_origin.origin_id #local.s3_origin_id
-      origin_access_identity = aws_cloudfront_origin_access_identity.cloudfront_s3_policy.cloudfront_access_identity_path
+  
 
       forwarded_values {
         query_string = false
