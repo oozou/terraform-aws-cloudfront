@@ -102,7 +102,10 @@ resource "aws_cloudfront_distribution" "distribution" {
     content {
       domain_name = var.s3_origin.origin_domain_name
       origin_id   = var.s3_origin.origin_id
-      origin_access_identity = aws_cloudfront_origin_access_identity.cloudfront_s3_policy.cloudfront_access_identity_path
+
+      s3_origin_config {
+        origin_access_identity = aws_cloudfront_origin_access_identity.cloudfront_s3_policy.cloudfront_access_identity_path
+      }
     }
   }
 
