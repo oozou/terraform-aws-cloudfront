@@ -38,6 +38,7 @@ module "cloudfront" {
     path_pattern = "/upload/*"
     allowed_methods  = ["GET", "HEAD", "OPTIONS"]
     cached_methods   = ["GET", "HEAD", "OPTIONS"]
+    is_create_oai      = true
   }
 
   log_aggregation_s3_bucket_name = "<bucket>-cloudfront-log"
