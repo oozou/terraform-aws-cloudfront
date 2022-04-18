@@ -87,7 +87,7 @@ resource "aws_cloudfront_distribution" "distribution" {
       origin_id   = var.s3_origin.origin_id
 
       dynamic "s3_origin_config" {
-        for_each = var.s3_origin.is_create_aoi ? [true] : []
+        for_each = var.s3_origin.is_create_oai ? [true] : []
 
         content {
           origin_access_identity = aws_cloudfront_origin_access_identity.cloudfront_s3_policy.cloudfront_access_identity_path
