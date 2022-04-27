@@ -150,7 +150,7 @@ resource "aws_cloudfront_distribution" "distribution" {
       default_ttl            = 86400
       max_ttl                = 31536000
       compress               = true
-      viewer_protocol_policy = try(var.s3_origin.viewer_protocol_policy, "allow-all")
+      viewer_protocol_policy = var.s3_origin.viewer_protocol_policy
 
       dynamic "lambda_function_association" {
         for_each = local.enable_lambda_function_association ? [true] : []
