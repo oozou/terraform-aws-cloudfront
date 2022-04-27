@@ -136,7 +136,6 @@ resource "aws_cloudfront_distribution" "distribution" {
       allowed_methods  = var.s3_origin.allowed_methods
       cached_methods   = var.s3_origin.cached_methods
       target_origin_id = var.s3_origin.origin_id #local.s3_origin_id
-  
 
       forwarded_values {
         query_string = false
@@ -151,7 +150,7 @@ resource "aws_cloudfront_distribution" "distribution" {
       default_ttl            = 86400
       max_ttl                = 31536000
       compress               = true
-      viewer_protocol_policy = "allow-all"
+      viewer_protocol_policy = try(var.s3_origin.viewer_protocol_policy, "allow-all")
 
       dynamic "lambda_function_association" {
         for_each = local.enable_lambda_function_association ? [true] : []
@@ -162,8 +161,6 @@ resource "aws_cloudfront_distribution" "distribution" {
           include_body = var.lambda_function_association.include_body
         }
       }
-
-
     }
   }
 

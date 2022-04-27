@@ -1,7 +1,9 @@
 output "cf_domain_name" {
-  value = "${aws_cloudfront_distribution.distribution.domain_name}"
+  description = "The domain name corresponding to the distribution. For example: d604721fxaaqy9.cloudfront.net"
+  value       = aws_cloudfront_distribution.distribution.domain_name
 }
 
 output "cf_s3_iam_arn" {
-  value = "${aws_cloudfront_origin_access_identity.cloudfront_s3_policy.iam_arn}"
+  description = "A pre-generated ARN for use in S3 bucket policies (see below). Example: arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity E2QWRUHAPOMQZL."
+  value       = aws_cloudfront_origin_access_identity.cloudfront_s3_policy.iam_arn
 }

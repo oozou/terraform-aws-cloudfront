@@ -32,7 +32,6 @@ variable "environment" {
   type        = string
 }
 
-
 # variable "base_name" {
 #   description = "[Required] Name prefix used for resource naming in this component"
 #   type        = string
@@ -154,38 +153,38 @@ variable "route53_domain_name" {
 }
 
 # Global WAF variables
-variable "blacklisted_ips" {
-  description = "List of IP addresses to blacklist for access to the application. Format of each entry is a map like: { type='IPV4' value='<ip>/32' }"
-  type = list(object({
-    type  = string
-    value = string
-  }))
-  default = []
-}
+# variable "blacklisted_ips" {
+#   description = "List of IP addresses to blacklist for access to the application. Format of each entry is a map like: { type='IPV4' value='<ip>/32' }"
+#   type = list(object({
+#     type  = string
+#     value = string
+#   }))
+#   default = []
+# }
 
-variable "whitelisted_ips" {
-  description = "List of IP addresses to whitelist for access to the application. Format of each entry is a map like: { type='IPV4' value='<ip>/32' }"
-  type = list(object({
-    type  = string
-    value = string
-  }))
-  default = []
-}
+# variable "whitelisted_ips" {
+#   description = "List of IP addresses to whitelist for access to the application. Format of each entry is a map like: { type='IPV4' value='<ip>/32' }"
+#   type = list(object({
+#     type  = string
+#     value = string
+#   }))
+#   default = []
+# }
 
-variable "admin_remote_ipset" {
-  description = "List of IP addresses to whitelist for access to the /admin route. Format of each entry is a map like: { type='IPV4' value='<ip>/32' }"
-  type = list(object({
-    type  = string
-    value = string
-  }))
-  default = []
-}
+# variable "admin_remote_ipset" {
+#   description = "List of IP addresses to whitelist for access to the /admin route. Format of each entry is a map like: { type='IPV4' value='<ip>/32' }"
+#   type = list(object({
+#     type  = string
+#     value = string
+#   }))
+#   default = []
+# }
 
-variable "default_action" {
-  description = "The default action to take if no rules match (BLOCK, ALLOW, or COUNT)"
-  default     = "BLOCK"
-  type        = string
-}
+# variable "default_action" {
+#   description = "The default action to take if no rules match (BLOCK, ALLOW, or COUNT)"
+#   default     = "BLOCK"
+#   type        = string
+# }
 
 variable "cdn_certificate_arn" {
   description = "Specify ARN for CDN certificate"
@@ -266,6 +265,7 @@ variable "is_enable_waf_sampled_requests" {
 }
 
 variable "is_create_waf_logging_configuration" {
+  type        = bool
   description = "Whether to create logging configuration in order start logging from a WAFv2 Web ACL to CloudWatch"
   default     = true
 }
