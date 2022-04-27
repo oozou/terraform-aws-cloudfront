@@ -200,12 +200,13 @@ variable "default_root_object" {
 variable "s3_origin" {
   description = "Specify configuration related to Origin S3"
   type = object({
-    path_pattern       = string
-    allowed_methods    = list(string)
-    cached_methods     = list(string)
-    origin_domain_name = string
-    origin_id          = string
-    is_create_oai      = bool
+    path_pattern           = string
+    allowed_methods        = list(string)
+    cached_methods         = list(string)
+    origin_domain_name     = string
+    origin_id              = string
+    viewer_protocol_policy = string
+    is_create_oai          = bool
   })
   default = null
 }
