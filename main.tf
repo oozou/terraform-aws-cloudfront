@@ -164,6 +164,70 @@ resource "aws_cloudfront_distribution" "distribution" {
     }
   }
 
+  dynamic "ordered_cache_behavior" {
+    for_each = var.ordered_cache_behaviors
+    iterator = cache_behavior
+
+    content {
+      path_pattern           = cache_behavior.value["path_pattern"]
+      target_origin_id       = cache_behavior.value["target_origin_id"]
+      viewer_protocol_policy = cache_behavior.value["viewer_protocol_policy"]
+
+      allowed_methods           = lookup(cache_behavior.value, "allowed_methods", ["GET", "HEAD", "OPTIONS"])
+      cached_methods            = lookup(cache_behavior.value, "cached_methods", ["GET", "HEAD"])
+      compress                  = lookup(cache_behavior.value, "compress", null)
+      field_level_encryption_id = lookup(cache_behavior.value, "field_level_encryption_id", null)
+      smooth_streaming          = lookup(cache_behavior.value, "smooth_streaming", null)
+      trusted_signers           = lookup(cache_behavior.value, "trusted_signers", null)
+      trusted_key_groups        = lookup(cache_behavior.value, "trusted_key_groups", null)
+
+      cache_policy_id            = lookup(cache_behavior.value, "cache_policy_id", null)
+      origin_request_policy_id   = lookup(cache_behavior.value, "origin_request_policy_id", null)
+      response_headers_policy_id = lookup(cache_behavior.value, "response_headers_policy_id", null)
+      realtime_log_config_arn    = lookup(cache_behavior.value, "realtime_log_config_arn", null)
+
+      min_ttl     = lookup(cache_behavior.value, "min_ttl", null)
+      default_ttl = lookup(cache_behavior.value, "default_ttl", null)
+      max_ttl     = lookup(cache_behavior.value, "max_ttl", null)
+
+      dynamic "forwarded_values" {
+        for_each = lookup(cache_behavior.value, "use_forwarded_values", true) ? [true] : []
+
+        content {
+          query_string            = lookup(cache_behavior.value, "query_string", false)
+          query_string_cache_keys = lookup(cache_behavior.value, "query_string_cache_keys", [])
+          headers                 = lookup(cache_behavior.value, "headers", [])
+
+          cookies {
+            forward           = lookup(cache_behavior.value, "cookies_forward", "none")
+            whitelisted_names = lookup(cache_behavior.value, "cookies_whitelisted_names", null)
+          }
+        }
+      }
+
+      dynamic "lambda_function_association" {
+        for_each = lookup(cache_behavior.value, "lambda_function_association", [])
+        iterator = l
+
+        content {
+          event_type   = l.key
+          lambda_arn   = l.value.lambda_arn
+          include_body = lookup(l.value, "include_body", null)
+        }
+      }
+
+      dynamic "function_association" {
+        for_each = lookup(cache_behavior.value, "function_association", [])
+        iterator = f
+
+        content {
+          event_type   = f.key
+          function_arn = f.value.function_arn
+        }
+      }
+    }
+  }
+
   dynamic "custom_error_response" {
     for_each = ["400", "403", "404", "405", "414", "500", "501", "502", "503", "504"]
     content {
