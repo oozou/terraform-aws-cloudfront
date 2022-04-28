@@ -32,12 +32,6 @@ variable "environment" {
   type        = string
 }
 
-
-# variable "base_name" {
-#   description = "[Required] Name prefix used for resource naming in this component"
-#   type        = string
-# }
-
 variable "account_alias" {
   description = "Alias of the AWS account where this service is created. Eg. alpha/beta/prod. This would be used create s3 bucket path in the logging account"
   type        = string
@@ -153,40 +147,6 @@ variable "route53_domain_name" {
   type        = string
 }
 
-# Global WAF variables
-variable "blacklisted_ips" {
-  description = "List of IP addresses to blacklist for access to the application. Format of each entry is a map like: { type='IPV4' value='<ip>/32' }"
-  type = list(object({
-    type  = string
-    value = string
-  }))
-  default = []
-}
-
-variable "whitelisted_ips" {
-  description = "List of IP addresses to whitelist for access to the application. Format of each entry is a map like: { type='IPV4' value='<ip>/32' }"
-  type = list(object({
-    type  = string
-    value = string
-  }))
-  default = []
-}
-
-variable "admin_remote_ipset" {
-  description = "List of IP addresses to whitelist for access to the /admin route. Format of each entry is a map like: { type='IPV4' value='<ip>/32' }"
-  type = list(object({
-    type  = string
-    value = string
-  }))
-  default = []
-}
-
-variable "default_action" {
-  description = "The default action to take if no rules match (BLOCK, ALLOW, or COUNT)"
-  default     = "BLOCK"
-  type        = string
-}
-
 variable "cdn_certificate_arn" {
   description = "Specify ARN for CDN certificate"
   type        = string
@@ -201,12 +161,13 @@ variable "default_root_object" {
 variable "s3_origin" {
   description = "Specify configuration related to Origin S3"
   type = object({
-    path_pattern       = string
-    allowed_methods    = list(string)
-    cached_methods     = list(string)
-    origin_domain_name = string
-    origin_id          = string
-    is_create_oai      = bool
+    path_pattern           = string
+    allowed_methods        = list(string)
+    cached_methods         = list(string)
+    origin_domain_name     = string
+    origin_id              = string
+    viewer_protocol_policy = string
+    is_create_oai          = bool
   })
   default = null
 }
@@ -219,6 +180,12 @@ variable "lambda_function_association" {
     include_body = bool
   })
   default = null
+}
+
+variable "ordered_cache_behaviors" {
+  description = "An ordered list of cache behaviors resource for this distribution. List from top to bottom in order of precedence. The topmost cache behavior will have precedence 0."
+  type        = any
+  default     = []
 }
 
 /* -------------------------------------------------------------------------- */
@@ -266,6 +233,7 @@ variable "is_enable_waf_sampled_requests" {
 }
 
 variable "is_create_waf_logging_configuration" {
+  type        = bool
   description = "Whether to create logging configuration in order start logging from a WAFv2 Web ACL to CloudWatch"
   default     = true
 }
