@@ -3,7 +3,7 @@
 Terraform module with create Cloudfront resources on AWS.
 
 ```terraform
-module "cloudfront_distribution_with_out_waf" {
+module "cloudfront_distribution" {
   source = "git@github.com:oozou/terraform-aws-cloudfront.git?ref=<selected_version>"
 
   prefix      = "oozou"
