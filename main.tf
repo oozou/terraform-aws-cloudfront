@@ -207,22 +207,22 @@ resource "aws_cloudfront_distribution" "distribution" {
 
       dynamic "lambda_function_association" {
         for_each = lookup(cache_behavior.value, "lambda_function_association", [])
-        iterator = l
+        iterator = lambda_function
 
         content {
-          event_type   = l.key
-          lambda_arn   = l.value.lambda_arn
-          include_body = lookup(l.value, "include_body", null)
+          event_type   = lambda_function.key
+          lambda_arn   = lambda_function.value.lambda_arn
+          include_body = lookup(lambda_function.value, "include_body", null)
         }
       }
 
       dynamic "function_association" {
         for_each = lookup(cache_behavior.value, "function_association", [])
-        iterator = f
+        iterator = function
 
         content {
-          event_type   = f.key
-          function_arn = f.value.function_arn
+          event_type   = function.key
+          function_arn = function.value.function_arn
         }
       }
     }
