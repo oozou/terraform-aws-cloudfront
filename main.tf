@@ -93,7 +93,6 @@ resource "aws_cloudfront_distribution" "distribution" {
           origin_access_identity = aws_cloudfront_origin_access_identity.cloudfront_s3_policy.cloudfront_access_identity_path
         }
       }
-
     }
   }
 
@@ -244,10 +243,6 @@ resource "aws_cloudfront_distribution" "distribution" {
     }
   }
 
-  tags = merge({
-    Name = local.resource_name
-  }, var.custom_tags)
-
   viewer_certificate {
     acm_certificate_arn            = var.cdn_certificate_arn
     cloudfront_default_certificate = false
@@ -265,4 +260,6 @@ resource "aws_cloudfront_distribution" "distribution" {
 
   # comment = "Managed by terraform" #<customer-prefix>-<env>-<paas>-cf
   comment = local.resource_name
+
+  tags = merge(local.tags, { "Name" : local.resource_name })
 }

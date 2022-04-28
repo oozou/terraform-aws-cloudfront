@@ -59,7 +59,7 @@ variable "price_class" {
   default     = "PriceClass_100" # By-default supporting edge locations only in USA and Europe
 }
 
-variable "custom_tags" {
+variable "tags" {
   description = "Custom tags which can be passed on to the AWS resources. They should be key value pairs having distinct keys."
   type        = map(string)
   default     = {}

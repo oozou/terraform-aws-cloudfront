@@ -17,5 +17,5 @@ module "waf" {
   redacted_fields                 = var.waf_redacted_fields
   logging_filter                  = var.waf_logging_filter
 
-  tags = var.custom_tags
+  tags = var.tags
 }
