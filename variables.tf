@@ -32,11 +32,6 @@ variable "environment" {
   type        = string
 }
 
-# variable "base_name" {
-#   description = "[Required] Name prefix used for resource naming in this component"
-#   type        = string
-# }
-
 variable "account_alias" {
   description = "Alias of the AWS account where this service is created. Eg. alpha/beta/prod. This would be used create s3 bucket path in the logging account"
   type        = string
