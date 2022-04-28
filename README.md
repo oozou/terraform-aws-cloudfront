@@ -3,66 +3,110 @@
 Terraform module with create Cloudfront resources on AWS.
 
 ```terraform
-module "cloudfront" {
-  source = "git@github.com:oozou/terraform-aws-cloudfront.git"
-  account_alias = "dev"
+module "cloudfront_distribution_with_out_waf" {
+  source = "git@github.com:oozou/terraform-aws-cloudfront.git?ref=<selected_version>"
 
-  prefix = "customer-test"
-  name = "app"
-  environment = "develop"
+  prefix      = "oozou"
+  name        = "cms"
+  environment = "dev"
 
-  // CDN variables
+  # CDN variables
   origin_config = {
-    origin_domain_name = "web.public-hostzone.com"
-    origin_id = "web.public-hostzone.com"
+    origin_domain_name = "alb.oozou-develop.oo-m.me"
+    origin_id          = "alb.oozou-develop.oo-m.me"
   }
 
+  # To attach token with header `custom-header-token` = var.custom_header_token
+  custom_header_token = "asjdhkjdhfkahdfkjahsdkfjhakdsjfkasdjhasjkhe" # Defualt "", no additional custom token
+
+  # By-default, fqdn for the CDN should be added, it should be the one for which certificate is issued
+  domain_aliases = ["web.oozou-develop.oo-m.me", "api.oozou-develop.oo-m.me"]
+
+  # Default behavior
   caching_config = {
-    forwarded_headers                 = ["Host"]
-    forward_cookies                   = "none"
+    forwarded_headers                 = ["Origin", "Authorization", "Referer", "Host", "Accept-Language", "Accept", "user-agent"]
+    forward_cookies                   = "all"
     forward_cookies_whitelisted_names = []
     forward_query_string              = true
     cached_methods                    = ["GET", "HEAD"]
   }
-
   ttl_config = {
-    default_ttl = 30 # seconds
+    default_ttl = 0
     min_ttl     = 0
-    max_ttl     = 60
+    max_ttl     = 0
   }
 
-  //for s3 cloudfront origin
+  # For s3 cloudfront origin
   s3_origin = {
-    origin_domain_name = "${module.s3_bucket.bucket_id}.s3.ap-southeast-1.amazonaws.com"
-    origin_id = module.s3_bucket.bucket_id
-    path_pattern = "/upload/*"
-    allowed_methods  = ["GET", "HEAD", "OPTIONS"]
-    cached_methods   = ["GET", "HEAD", "OPTIONS"]
-    is_create_oai      = true
+    is_create_oai          = false
+    origin_domain_name     = "oozou-dev-cms-bucket-011275294601-wf2lxe.s3.ap-southeast-1.amazonaws.com"
+    origin_id              = "oozou-dev-cms-bucket-011275294601-wf2lxe"
+    path_pattern           = "/uploads/*"
+    viewer_protocol_policy = "redirect-to-https"
+    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
+    cached_methods         = ["GET", "HEAD", "OPTIONS"]
   }
-
-  log_aggregation_s3_bucket_name = "<bucket>-cloudfront-log"
-  custom_header_token  = "test"
-
-  custom_tags       = { Workspace = "100-prefix-pass-app" }
-
-
-  cdn_certificate_arn = "arn:aws:acm:us-east-1:xxxxxxx:certificate/xxxx-xxxxx-xxxx"
-  // DNS Mapping variables
-  acm_cert_domain_name = "cdn.public-hostzone.com"
-  route53_domain_name  = "public-hostzone.com"
-
-  // Lamdda association in origin-request
   lambda_function_association = {
     event_type   = "origin-request"
-    lambda_arn   = "arn:aws:lambda:us-east-1:xxxxxxxxx:function:sigv4-request-to-s3:1"
+    lambda_arn   = "arn:aws:lambda:us-east-1:${data.aws_caller_identity.current.account_id}:function:sigv4-request-to-s3:1"
     include_body = false
   }
 
-  // WAF
-  is_enable_waf = true
+  # Custom behavior
+  ordered_cache_behaviors = [
+    {
+      path_pattern           = "/mobile/*",
+      target_origin_id       = "alb.oozou-develop.oo-m.me",
+      viewer_protocol_policy = "redirect-to-https",
+
+      allowed_methods = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"],
+      compress        = true,
+
+      query_string            = true,
+      query_string_cache_keys = [],
+      headers                 = ["Accept", "Accept-Language", "Authorization", "Host", "Origin", "Referer", "user-agent"],
+
+      cookies_forward = "all",
+
+      min_ttl     = 0,
+      default_ttl = 30,
+      max_ttl     = 60,
+
+      response_headers_policy_id = null
+    },
+    {
+      path_pattern           = "/_next/*",
+      target_origin_id       = "alb.oozou-develop.oo-m.me",
+      viewer_protocol_policy = "redirect-to-https",
+
+      allowed_methods = ["GET", "HEAD", "OPTIONS"],
+      compress        = true,
+
+      query_string            = true,
+      query_string_cache_keys = [],
+      headers                 = ["Host"],
+
+      cookies_forward = "all",
+
+      min_ttl     = 0,
+      default_ttl = 86400,
+      max_ttl     = 31536000,
+
+      response_headers_policy_id = null
+    },
+  ]
+
+  log_aggregation_s3_bucket_name = "sbth-uat-cms-cdn-log-bucket-kmayuh"
+
+  # DNS Mapping variables
+  cdn_certificate_arn  = "arn:aws:acm:ap-southeast-1:011275294601:certificate/3826abc-c140-4c13-acc1-8668c038c20a"
+  acm_cert_domain_name = format("%s.%s", "cdn", "var.oozou-develop.oo-m.me")
+  route53_domain_name  = "var.oozou-develop.oo-m.me"
+
+  # Waf
+  is_enable_waf              = true # If  is_enable_waf is `false`, all of fllowing variables are ignored
   is_enable_waf_default_rule = true
-  waf_default_action = "allow"
+  waf_default_action         = "allow"
   waf_ip_sets_rule = [
     {
       name               = "count-ip-set"
@@ -85,6 +129,8 @@ module "cloudfront" {
     action : "block",
     limit : 100
   }
+
+  tags = { "Workspace" : "xxx" }
 }
 ```
 
