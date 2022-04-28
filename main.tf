@@ -253,7 +253,7 @@ resource "aws_cloudfront_distribution" "distribution" {
   logging_config {
     include_cookies = var.log_include_cookies
     bucket          = "${var.log_aggregation_s3_bucket_name}.s3.amazonaws.com"
-    prefix          = "${var.account_alias}/${local.resource_name}-cloudfront"
+    prefix          = "${var.environment}/${local.resource_name}-cloudfront"
   }
 
   web_acl_id = var.is_enable_waf ? module.waf[0].web_acl_id : null
