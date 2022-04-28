@@ -18,9 +18,7 @@ resource "aws_iam_role" "main" {
 }
 EOF
 
-  tags = merge({
-    Name = local.resource_name
-  }, var.custom_tags)
+  tags = merge(local.tags, { "Name" : local.resource_name })
 }
 
 resource "aws_iam_role_policy" "main" {

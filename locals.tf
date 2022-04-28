@@ -5,4 +5,12 @@ locals {
   enable_s3_origin                   = var.s3_origin != null ? true : false
   enable_lambda_function_association = var.lambda_function_association != null ? true : false
   resource_name                      = "${var.prefix}-${var.environment}-${var.name}-cf"
+
+  tags = merge(
+    {
+      "Environment" = var.environment,
+      "Terraform"   = "true"
+    },
+    var.tags
+  )
 }

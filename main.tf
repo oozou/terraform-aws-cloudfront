@@ -93,7 +93,6 @@ resource "aws_cloudfront_distribution" "distribution" {
           origin_access_identity = aws_cloudfront_origin_access_identity.cloudfront_s3_policy.cloudfront_access_identity_path
         }
       }
-
     }
   }
 
@@ -244,10 +243,6 @@ resource "aws_cloudfront_distribution" "distribution" {
     }
   }
 
-  tags = merge({
-    Name = local.resource_name
-  }, var.custom_tags)
-
   viewer_certificate {
     acm_certificate_arn            = var.cdn_certificate_arn
     cloudfront_default_certificate = false
@@ -258,11 +253,13 @@ resource "aws_cloudfront_distribution" "distribution" {
   logging_config {
     include_cookies = var.log_include_cookies
     bucket          = "${var.log_aggregation_s3_bucket_name}.s3.amazonaws.com"
-    prefix          = "${var.account_alias}/${local.resource_name}-cloudfront"
+    prefix          = "${var.environment}/${local.resource_name}-cloudfront"
   }
 
   web_acl_id = var.is_enable_waf ? module.waf[0].web_acl_id : null
 
   # comment = "Managed by terraform" #<customer-prefix>-<env>-<paas>-cf
   comment = local.resource_name
+
+  tags = merge(local.tags, { "Name" : local.resource_name })
 }
