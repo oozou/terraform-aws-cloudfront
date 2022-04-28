@@ -152,40 +152,6 @@ variable "route53_domain_name" {
   type        = string
 }
 
-# Global WAF variables
-# variable "blacklisted_ips" {
-#   description = "List of IP addresses to blacklist for access to the application. Format of each entry is a map like: { type='IPV4' value='<ip>/32' }"
-#   type = list(object({
-#     type  = string
-#     value = string
-#   }))
-#   default = []
-# }
-
-# variable "whitelisted_ips" {
-#   description = "List of IP addresses to whitelist for access to the application. Format of each entry is a map like: { type='IPV4' value='<ip>/32' }"
-#   type = list(object({
-#     type  = string
-#     value = string
-#   }))
-#   default = []
-# }
-
-# variable "admin_remote_ipset" {
-#   description = "List of IP addresses to whitelist for access to the /admin route. Format of each entry is a map like: { type='IPV4' value='<ip>/32' }"
-#   type = list(object({
-#     type  = string
-#     value = string
-#   }))
-#   default = []
-# }
-
-# variable "default_action" {
-#   description = "The default action to take if no rules match (BLOCK, ALLOW, or COUNT)"
-#   default     = "BLOCK"
-#   type        = string
-# }
-
 variable "cdn_certificate_arn" {
   description = "Specify ARN for CDN certificate"
   type        = string
