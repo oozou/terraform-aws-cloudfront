@@ -184,6 +184,15 @@ variable "ordered_cache_behaviors" {
 }
 
 /* -------------------------------------------------------------------------- */
+/*                                     IAM                                    */
+/* -------------------------------------------------------------------------- */
+variable "is_create_log_access_role" {
+  description = "Whether to create log access role or not; just make role no relate resource in this module used"
+  type        = bool
+  default     = true
+}
+
+/* -------------------------------------------------------------------------- */
 /*                                     WAF                                    */
 /* -------------------------------------------------------------------------- */
 variable "is_enable_waf" {
