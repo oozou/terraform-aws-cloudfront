@@ -209,7 +209,7 @@ resource "aws_cloudfront_distribution" "distribution" {
         iterator = lambda_function
 
         content {
-          event_type   = lambda_function.key
+          event_type   = lambda_function.value.event_type
           lambda_arn   = lambda_function.value.lambda_arn
           include_body = lookup(lambda_function.value, "include_body", null)
         }
@@ -220,7 +220,7 @@ resource "aws_cloudfront_distribution" "distribution" {
         iterator = function
 
         content {
-          event_type   = function.key
+          event_type   = function.value.event_type
           function_arn = function.value.function_arn
         }
       }

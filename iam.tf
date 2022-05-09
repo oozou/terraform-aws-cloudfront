@@ -1,4 +1,6 @@
 resource "aws_iam_role" "main" {
+  count = var.is_create_log_access_role ? 1 : 0
+
   name = "${local.resource_name}-cloudfront-logs-access-role"
   path = "/"
 
@@ -22,8 +24,10 @@ EOF
 }
 
 resource "aws_iam_role_policy" "main" {
+  count = var.is_create_log_access_role ? 1 : 0
+
   name = "${local.resource_name}-cloudfront-logs-access-policy"
-  role = aws_iam_role.main.id
+  role = aws_iam_role.main[0].id
 
   policy = <<EOF
 {
