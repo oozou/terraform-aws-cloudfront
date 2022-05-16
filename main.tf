@@ -119,6 +119,7 @@ resource "aws_cloudfront_distribution" "distribution" {
       headers = var.caching_config.forwarded_headers
     }
 
+    compress               = var.caching_config.compress
     viewer_protocol_policy = "redirect-to-https"
     min_ttl                = var.ttl_config.min_ttl
     default_ttl            = var.ttl_config.default_ttl

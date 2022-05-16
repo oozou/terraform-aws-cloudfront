@@ -68,6 +68,7 @@ variable "caching_config" {
     forward_cookies_whitelisted_names = list(string) # List of forwarded cookie names
     forward_query_string              = bool         # Forward query strings to the origin that is associated with this cache behavior
     cached_methods                    = list(string) # List of cached methods (e.g. ` GET, PUT, POST, DELETE, HEAD`)
+    compress                          = bool
   })
   default = {
     forwarded_headers                 = ["Host"]
@@ -75,6 +76,7 @@ variable "caching_config" {
     forward_cookies_whitelisted_names = []
     forward_query_string              = false
     cached_methods                    = ["GET", "HEAD"]
+    compress                          = true
   }
 }
 
