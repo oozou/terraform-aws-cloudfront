@@ -60,38 +60,23 @@ variable "tags" {
   default     = {}
 }
 
-variable "caching_config" {
+variable "default_cache_behavior" {
   description = "Specify CloudFront configuration related to caching behavior"
-  type = object({
-    forwarded_headers                 = list(string) # Specifies the Headers, if any, that you want CloudFront to vary upon for the cache behavior. Specify `*` to include all headers. 'none' is not a valid option for HTTPS connection
-    forward_cookies                   = string       # Specifies whether you want CloudFront to forward cookies to the origin. Valid options are all, none or whitelist
-    forward_cookies_whitelisted_names = list(string) # List of forwarded cookie names
-    forward_query_string              = bool         # Forward query strings to the origin that is associated with this cache behavior
-    cached_methods                    = list(string) # List of cached methods (e.g. ` GET, PUT, POST, DELETE, HEAD`)
-    compress                          = bool
-  })
+  type        = any
   default = {
-    forwarded_headers                 = ["Host"]
-    forward_cookies                   = "none"
-    forward_cookies_whitelisted_names = []
-    forward_query_string              = false
-    cached_methods                    = ["GET", "HEAD"]
-    compress                          = true
+    allowed_methods           = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods            = ["GET", "HEAD"]
+    headers                   = ["Host"]
+    cookies_forward           = "none"
+    cookies_whitelisted_names = []
+    query_string              = false
+    query_string_cache_keys   = []
+    compress                  = true
+    min_ttl                   = 0
+    default_ttl               = 3600
+    max_ttl                   = 86400
   }
-}
 
-variable "ttl_config" {
-  description = "Specify Time To Live (TTL) configuration for CloudFront"
-  type = object({
-    default_ttl = number #Default amount of time (in seconds) that an object is in a CloudFront cache, after this time CDN makes a fresh call to origin
-    min_ttl     = number #Minimum amount of time that you want objects to stay in CloudFront caches
-    max_ttl     = number #Maximum amount of time (in seconds) that an object is in a CloudFront cache
-  })
-  default = {
-    default_ttl = 3600 # 1hour
-    min_ttl     = 0
-    max_ttl     = 86400 # 24hours
-  }
 }
 
 variable "geo_restriction_config" {
@@ -110,13 +95,6 @@ variable "is_ipv6_enabled" {
   description = "State of CloudFront IPv6"
   type        = bool
   default     = true
-}
-
-variable "allowed_methods" {
-  # The parameter AllowedMethods cannot include POST, PUT, PATCH, or DELETE for a cached behavior associated with an origin group.
-  description = "List of allowed methods (e.g. ` GET, PUT, POST, DELETE, HEAD`) for AWS CloudFront"
-  type        = list(string)
-  default     = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
 }
 
 variable "log_include_cookies" {

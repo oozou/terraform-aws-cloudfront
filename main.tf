@@ -104,26 +104,61 @@ resource "aws_cloudfront_distribution" "distribution" {
   aliases = concat([var.acm_cert_domain_name], var.domain_aliases)
 
   default_cache_behavior {
-    # The parameter AllowedMethods cannot include POST, PUT, PATCH, or DELETE for a cached behavior associated with an origin group.
-    allowed_methods  = var.allowed_methods
-    cached_methods   = var.caching_config.cached_methods
+    allowed_methods  = lookup(var.default_cache_behavior, "allowed_methods", ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"])
+    cached_methods   = lookup(var.default_cache_behavior, "cached_methods", ["GET", "HEAD"])
     target_origin_id = local.is_origin_group ? local.origin_group_id : local.primary_origin_id
 
-    forwarded_values {
-      query_string = var.caching_config.forward_query_string
+    compress    = lookup(var.default_cache_behavior, "compress", true)
+    min_ttl     = lookup(var.default_cache_behavior, "min_ttl", 0)
+    default_ttl = lookup(var.default_cache_behavior, "default_ttl", 3600)
+    max_ttl     = lookup(var.default_cache_behavior, "max_ttl", 86400)
 
-      cookies {
-        forward           = var.caching_config.forward_cookies
-        whitelisted_names = var.caching_config.forward_cookies_whitelisted_names
+    viewer_protocol_policy    = lookup(var.default_cache_behavior, "viewer_protocol_policy", "redirect-to-https")
+    field_level_encryption_id = lookup(var.default_cache_behavior, "field_level_encryption_id", null)
+    smooth_streaming          = lookup(var.default_cache_behavior, "smooth_streaming", null)
+    trusted_signers           = lookup(var.default_cache_behavior, "trusted_signers", null)
+    trusted_key_groups        = lookup(var.default_cache_behavior, "trusted_key_groups", null)
+
+    cache_policy_id            = lookup(var.default_cache_behavior, "cache_policy_id", null)
+    origin_request_policy_id   = lookup(var.default_cache_behavior, "origin_request_policy_id", null)
+    response_headers_policy_id = lookup(var.default_cache_behavior, "response_headers_policy_id", null)
+    realtime_log_config_arn    = lookup(var.default_cache_behavior, "realtime_log_config_arn", null)
+
+    dynamic "forwarded_values" {
+      for_each = lookup(var.default_cache_behavior, "use_forwarded_values", true) ? [true] : []
+
+      content {
+        query_string            = lookup(var.default_cache_behavior, "query_string", false)
+        query_string_cache_keys = lookup(var.default_cache_behavior, "query_string_cache_keys", [])
+        headers                 = lookup(var.default_cache_behavior, "headers", [])
+
+        cookies {
+          forward           = lookup(var.default_cache_behavior, "cookies_forward", "none")
+          whitelisted_names = lookup(var.default_cache_behavior, "cookies_whitelisted_names", null)
+        }
       }
-      headers = var.caching_config.forwarded_headers
     }
 
-    compress               = var.caching_config.compress
-    viewer_protocol_policy = "redirect-to-https"
-    min_ttl                = var.ttl_config.min_ttl
-    default_ttl            = var.ttl_config.default_ttl
-    max_ttl                = var.ttl_config.max_ttl
+    dynamic "lambda_function_association" {
+      for_each = lookup(var.default_cache_behavior, "lambda_function_association", [])
+      iterator = lambda_function
+
+      content {
+        event_type   = lambda_function.value.event_type
+        lambda_arn   = lambda_function.value.lambda_arn
+        include_body = lookup(lambda_function.value, "include_body", null)
+      }
+    }
+
+    dynamic "function_association" {
+      for_each = lookup(var.default_cache_behavior, "function_association", [])
+      iterator = function
+
+      content {
+        event_type   = function.value.event_type
+        function_arn = function.value.function_arn
+      }
+    }
   }
 
 
