@@ -2,6 +2,12 @@
 
 All notable changes to this module will be documented in this file.
 
+## [1.0.3] - 2022-07-22
+
+### Fixed
+
+- freez terraform-aws-waf version from `develop` to `1.0.2`
+
 ## [1.0.2] - 2022-06-30
 
 ### Added
@@ -12,7 +18,6 @@ All notable changes to this module will be documented in this file.
 
 - variables
   - move `caching_config`, `ttl_config` and `allowed_methods` to `default_cache_behavior`
-
 
 ### Added
 
