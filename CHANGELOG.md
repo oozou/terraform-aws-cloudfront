@@ -4,9 +4,9 @@ All notable changes to this module will be documented in this file.
 
 ## [1.0.3] - 2022-07-22
 
-### Fixed
+### Changed
 
-- freez terraform-aws-waf version from `develop` to `1.0.2`
+- freeze terraform-aws-waf version from `develop` to `1.0.2`
 
 ## [1.0.2] - 2022-06-30
 
