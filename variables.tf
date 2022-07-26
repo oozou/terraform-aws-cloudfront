@@ -222,6 +222,18 @@ variable "is_create_waf_logging_configuration" {
   default     = true
 }
 
+variable "waf_cloudwatch_log_retention_in_days" {
+  description = "Specifies the number of days you want to retain log events Possible values are: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653, and 0. If you select 0, the events in the log group are always retained and never expire"
+  type        = number
+  default     = 90
+}
+
+variable "waf_cloudwatch_log_kms_key_id" {
+  description = "The ARN for the KMS encryption key."
+  type        = string
+  default     = null
+}
+
 variable "waf_redacted_fields" {
   description = "The parts of the request that you want to keep out of the logs. Up to 100 `redacted_fields` blocks are supported."
   type        = any
