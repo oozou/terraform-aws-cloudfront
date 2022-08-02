@@ -1,4 +1,5 @@
 data "aws_route53_zone" "hosted_zone" {
+  count        = var.is_automatic_create_dns_record ? 1 : 0
   name         = var.route53_domain_name
   private_zone = false
 }

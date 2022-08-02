@@ -111,6 +111,11 @@ variable "origin_read_timeout" {
 
 #  ACM variables
 # domain name for the created CDN
+variable "is_automatic_create_dns_record" {
+  description = "Whether to automatically create cloudfront A record."
+  type        = bool
+  default     = true
+}
 variable "acm_cert_domain_name" {
   description = "[Required] The FQDN of the certificate to issue (i.e.: 'prime.spike.abc.cloud'). The Route53 zone must already exist."
   type        = string
