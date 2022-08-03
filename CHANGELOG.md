@@ -8,6 +8,7 @@ All notable changes to this module will be documented in this file.
 
 - add vars `is_automatic_create_dns_record` for enable an option to choose whether to automatically create dns records or not
 - dns records is now capable to create record for all cloudfront aliases
+- support using cloudfront certificate viewer instead of custom one
 
 ### Changed
 
