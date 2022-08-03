@@ -1,4 +1,5 @@
 data "aws_route53_zone" "hosted_zone" {
+  count        = var.is_automatic_create_dns_record ? 1 : 0
   name         = var.route53_domain_name
   private_zone = false
 }
@@ -101,7 +102,7 @@ resource "aws_cloudfront_distribution" "distribution" {
   default_root_object = var.default_root_object
 
   # By-default, fqdn for the CDN should be added, it should be the one for which certificate is issued
-  aliases = concat([var.acm_cert_domain_name], var.domain_aliases)
+  aliases = var.domain_aliases
 
   default_cache_behavior {
     allowed_methods  = lookup(var.default_cache_behavior, "allowed_methods", ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"])
@@ -280,10 +281,10 @@ resource "aws_cloudfront_distribution" "distribution" {
   }
 
   viewer_certificate {
-    acm_certificate_arn            = var.cdn_certificate_arn
-    cloudfront_default_certificate = false
-    minimum_protocol_version       = "TLSv1.2_2018"
-    ssl_support_method             = "sni-only"
+    acm_certificate_arn            = local.is_use_cloudfront_cert_viewer ? null : var.cdn_certificate_arn
+    cloudfront_default_certificate = local.is_use_cloudfront_cert_viewer ? true : false
+    minimum_protocol_version       = local.is_use_cloudfront_cert_viewer ? "TLSv1" : "TLSv1.2_2018"
+    ssl_support_method             = local.is_use_cloudfront_cert_viewer ? null : "sni-only"
   }
 
   logging_config {

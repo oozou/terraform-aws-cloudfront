@@ -2,6 +2,19 @@
 
 All notable changes to this module will be documented in this file.
 
+## [1.0.4] - 2022-08-03
+
+### Added
+
+- add vars `is_automatic_create_dns_record` for enable an option to choose whether to automatically create dns records or not
+- dns records is now capable to create record for all cloudfront aliases
+- support using cloudfront certificate viewer instead of custom one
+
+### Changed
+
+- remove vars `acm_cert_domain_name`
+- vars `domain_aliases` is now only vars that use as cloudfront aliases
+
 ## [1.0.3] - 2022-07-22
 
 ### Changed
@@ -29,7 +42,6 @@ All notable changes to this module will be documented in this file.
 
 - variables
   - `is_create_log_access_role`
-
 
 ## [1.0.0] - 2022-04-28
 

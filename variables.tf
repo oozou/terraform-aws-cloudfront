@@ -43,7 +43,7 @@ variable "log_aggregation_s3_bucket_name" {
 }
 
 variable "domain_aliases" {
-  description = "Extra CNAMEs (alternate domain names) for the distribution (apart from FQDN for which SSL certificate is issued, it will be added by-default)"
+  description = "CNAMEs (domain names) for the distribution"
   type        = list(string)
   default     = []
 }
@@ -111,20 +111,23 @@ variable "origin_read_timeout" {
 
 #  ACM variables
 # domain name for the created CDN
-variable "acm_cert_domain_name" {
-  description = "[Required] The FQDN of the certificate to issue (i.e.: 'prime.spike.abc.cloud'). The Route53 zone must already exist."
-  type        = string
+variable "is_automatic_create_dns_record" {
+  description = "Whether to automatically create cloudfront A record."
+  type        = bool
+  default     = true
 }
 
 # name of the hosted zone for the route 53 record for CDN
 variable "route53_domain_name" {
   description = "[Required] The Name of the already existing Route53 Hosted Zone (i.e.: 'spike.abc.cloud')"
   type        = string
+  default     = null
 }
 
 variable "cdn_certificate_arn" {
   description = "Specify ARN for CDN certificate"
   type        = string
+  default     = null
 }
 
 variable "default_root_object" {

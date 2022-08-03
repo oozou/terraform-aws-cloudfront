@@ -1,8 +1,9 @@
 # DNS Mapping
 resource "aws_route53_record" "application" {
-  zone_id = data.aws_route53_zone.hosted_zone.id
-  name    = var.acm_cert_domain_name
-  type    = "A"
+  for_each = var.is_automatic_create_dns_record ? local.aliases_records : {}
+  zone_id  = data.aws_route53_zone.hosted_zone[0].id
+  name     = each.value.name
+  type     = "A"
 
   alias {
     name                   = lower(aws_cloudfront_distribution.distribution.domain_name)
