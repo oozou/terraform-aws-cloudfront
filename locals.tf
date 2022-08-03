@@ -6,6 +6,7 @@ locals {
   enable_lambda_function_association = var.lambda_function_association != null ? true : false
   resource_name                      = "${var.prefix}-${var.environment}-${var.name}-cf"
   aliases_records                    = { for name in var.domain_aliases : name => { "name" = name } }
+  is_use_cloudfront_cert_viewer      = var.cdn_certificate_arn == null && var.is_automatic_create_dns_record == false && length(var.domain_aliases) == 0 ? true : false
 
   tags = merge(
     {

@@ -44,7 +44,8 @@ variable "log_aggregation_s3_bucket_name" {
 
 variable "domain_aliases" {
   description = "CNAMEs (domain names) for the distribution"
-  type        = string
+  type        = list(string)
+  default     = []
 }
 
 variable "price_class" {
@@ -120,11 +121,13 @@ variable "is_automatic_create_dns_record" {
 variable "route53_domain_name" {
   description = "[Required] The Name of the already existing Route53 Hosted Zone (i.e.: 'spike.abc.cloud')"
   type        = string
+  default     = null
 }
 
 variable "cdn_certificate_arn" {
   description = "Specify ARN for CDN certificate"
   type        = string
+  default     = null
 }
 
 variable "default_root_object" {
