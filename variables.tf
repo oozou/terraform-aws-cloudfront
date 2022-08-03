@@ -42,15 +42,9 @@ variable "log_aggregation_s3_bucket_name" {
   type        = string
 }
 
-variable "domain_alias" {
+variable "domain_aliases" {
   description = "CNAMEs (domain names) for the distribution"
   type        = string
-}
-
-variable "domain_aliases_extra" {
-  description = "Extra CNAMEs (alternate domain names) for the distribution (apart from FQDN for which SSL certificate is issued, it will be added by-default)"
-  type        = list(string)
-  default     = []
 }
 
 variable "price_class" {

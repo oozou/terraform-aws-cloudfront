@@ -11,8 +11,8 @@ All notable changes to this module will be documented in this file.
 
 ### Changed
 
-- move vars from `acm_cert_domain_name` to `domain_alias`
-- move vars from `domain_aliases` to `domain_aliases_extra`
+- remove vars `acm_cert_domain_name`
+- vars `domain_aliases` is now only vars that use as cloudfront aliases
 
 ## [1.0.3] - 2022-07-22
 

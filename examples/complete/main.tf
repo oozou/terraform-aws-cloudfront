@@ -10,15 +10,13 @@ module "cloudfront_distribution" {
   custom_header_token            = ""
 
   # CDN variables
-  domain_alias         = "example.example.com"
-  domain_aliases_extra = ["example1.example.com"]
   origin_config = {
     origin_domain_name = "example.com"
     origin_id          = "example.com"
   }
 
   # By-default, fqdn for the CDN should be added, it should be the one for which certificate is issued
-  domain_aliases      = ["example.example.com"]
+  domain_aliases      = ["example.example.com", "example1.example.com"]
   default_root_object = ""
 
   # Default behavior
