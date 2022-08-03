@@ -10,6 +10,8 @@ module "cloudfront_distribution" {
   custom_header_token            = ""
 
   # CDN variables
+  domain_alias         = "example.example.com"
+  domain_aliases_extra = ["example1.example.com"]
   origin_config = {
     origin_domain_name = "example.com"
     origin_id          = "example.com"
@@ -34,14 +36,14 @@ module "cloudfront_distribution" {
 
 
   # DNS Mapping variables
-  cdn_certificate_arn        = module.acm_virginia.certificate_arn[0]
-  acm_cert_domain_name       = "example.example.com"
-  route53_domain_name        = "example.com"
-  is_enable_waf              = true
-  is_enable_waf_default_rule = false
-  waf_default_action         = "allow"
-  tags                       = var.custom_tags
+  is_automatic_create_dns_record = true
+  cdn_certificate_arn            = module.acm_virginia.certificate_arn[0]
+  route53_domain_name            = "example.com"
+  is_enable_waf                  = true
+  is_enable_waf_default_rule     = false
+  waf_default_action             = "allow"
+  tags                           = var.custom_tags
   providers = {
     aws = aws.virginia
-   }
+  }
 }

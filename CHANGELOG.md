@@ -4,6 +4,18 @@ All notable changes to this module will be documented in this file.
 
 ## [1.0.3] - 2022-07-22
 
+### Added
+
+- add vars `is_automatic_create_dns_record` for enable an option to choose whether to automatically create dns records or not
+- dns records is now capable to create record for all cloudfront aliases
+
+### Changed
+
+- move vars from `acm_cert_domain_name` to `domain_alias`
+- move vars from `domain_aliases` to `domain_aliases_extra`
+
+## [1.0.3] - 2022-07-22
+
 ### Changed
 
 - freeze terraform-aws-waf version from `develop` to `1.0.2`
@@ -29,7 +41,6 @@ All notable changes to this module will be documented in this file.
 
 - variables
   - `is_create_log_access_role`
-
 
 ## [1.0.0] - 2022-04-28
 
