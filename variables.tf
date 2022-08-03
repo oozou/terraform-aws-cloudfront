@@ -42,7 +42,12 @@ variable "log_aggregation_s3_bucket_name" {
   type        = string
 }
 
-variable "domain_aliases" {
+variable "domain_alias" {
+  description = "CNAMEs (domain names) for the distribution"
+  type        = string
+}
+
+variable "domain_aliases_extra" {
   description = "Extra CNAMEs (alternate domain names) for the distribution (apart from FQDN for which SSL certificate is issued, it will be added by-default)"
   type        = list(string)
   default     = []
@@ -115,10 +120,6 @@ variable "is_automatic_create_dns_record" {
   description = "Whether to automatically create cloudfront A record."
   type        = bool
   default     = true
-}
-variable "acm_cert_domain_name" {
-  description = "[Required] The FQDN of the certificate to issue (i.e.: 'prime.spike.abc.cloud'). The Route53 zone must already exist."
-  type        = string
 }
 
 # name of the hosted zone for the route 53 record for CDN

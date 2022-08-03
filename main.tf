@@ -102,7 +102,7 @@ resource "aws_cloudfront_distribution" "distribution" {
   default_root_object = var.default_root_object
 
   # By-default, fqdn for the CDN should be added, it should be the one for which certificate is issued
-  aliases = concat([var.acm_cert_domain_name], var.domain_aliases)
+  aliases = local.aliases
 
   default_cache_behavior {
     allowed_methods  = lookup(var.default_cache_behavior, "allowed_methods", ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"])
