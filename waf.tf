@@ -1,6 +1,9 @@
 module "waf" {
-  count                  = var.is_enable_waf ? 1 : 0
-  source                 = "git@github.com:oozou/terraform-aws-waf.git?ref=v1.0.2"
+  source  = "oozou/waf/aws"
+  version = "1.0.2"
+
+  count = var.is_enable_waf ? 1 : 0
+
   name                   = var.name
   prefix                 = var.prefix
   scope                  = "CLOUDFRONT"
