@@ -150,9 +150,9 @@ module "cloudfront_distribution" {
 
 ## Modules
 
-| Name                                          | Source                                     | Version |
-|-----------------------------------------------|--------------------------------------------|---------|
-| <a name="module_waf"></a> [waf](#module\_waf) | git@github.com:oozou/terraform-aws-waf.git | v1.0.2  |
+| Name                                          | Source        | Version |
+|-----------------------------------------------|---------------|---------|
+| <a name="module_waf"></a> [waf](#module\_waf) | oozou/waf/aws | 1.0.2   |
 
 ## Resources
 

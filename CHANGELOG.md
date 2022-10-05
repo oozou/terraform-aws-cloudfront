@@ -6,6 +6,12 @@ All notable changes to this module will be documented in this file.
 
 ### Changed
 
+- Update module `module.waf` to new public version
+
+## [1.0.5] - 2022-08-17
+
+### Changed
+
 - Update require version of terraform from `>=0.13` to `>=1.0.0`
 - Update .pre-commit-config.yaml uncomment `terraform_unused_declarations`
 - Update README regard to `versions.tf`
