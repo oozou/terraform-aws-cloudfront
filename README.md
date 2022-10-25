@@ -152,7 +152,7 @@ module "cloudfront_distribution" {
 
 | Name                                          | Source        | Version |
 |-----------------------------------------------|---------------|---------|
-| <a name="module_waf"></a> [waf](#module\_waf) | oozou/waf/aws | 1.0.2   |
+| <a name="module_waf"></a> [waf](#module\_waf) | oozou/waf/aws | 1.0.3   |
 
 ## Resources
 

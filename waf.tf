@@ -1,7 +1,6 @@
 module "waf" {
-  # source  = "oozou/waf/aws"
-  # version = "1.0.2"
-  source = "git@github.com:oozou/terraform-aws-waf.git?ref=fix/version"
+  source  = "oozou/waf/aws"
+  version = "1.0.3"
 
   count = var.is_enable_waf ? 1 : 0
 
