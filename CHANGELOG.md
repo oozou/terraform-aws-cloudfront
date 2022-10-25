@@ -2,13 +2,19 @@
 
 All notable changes to this module will be documented in this file.
 
-## [1.0.6] - 2022-10-05
+## [v1.0.6] - 2022-10-25
+
+### Changed
+
+- Update `module/waf` to version `v1.0.3`
+
+## [v1.0.6] - 2022-10-05
 
 ### Changed
 
 - Update module `module.waf` to new public version
 
-## [1.0.5] - 2022-08-17
+## [v1.0.5] - 2022-08-17
 
 ### Changed
 
@@ -16,7 +22,7 @@ All notable changes to this module will be documented in this file.
 - Update .pre-commit-config.yaml uncomment `terraform_unused_declarations`
 - Update README regard to `versions.tf`
 
-## [1.0.4] - 2022-08-03
+## [v1.0.4] - 2022-08-03
 
 ### Added
 
@@ -29,13 +35,13 @@ All notable changes to this module will be documented in this file.
 - remove vars `acm_cert_domain_name`
 - vars `domain_aliases` is now only vars that use as cloudfront aliases
 
-## [1.0.3] - 2022-07-22
+## [v1.0.3] - 2022-07-22
 
 ### Changed
 
 - freeze terraform-aws-waf version from `develop` to `1.0.2`
 
-## [1.0.2] - 2022-06-30
+## [v1.0.2] - 2022-06-30
 
 ### Added
 
@@ -50,14 +56,14 @@ All notable changes to this module will be documented in this file.
 
 - init terraform-aws-cloudfront module
 
-## [1.0.1] - 2022-05-09
+## [v1.0.1] - 2022-05-09
 
 ### Added
 
 - variables
   - `is_create_log_access_role`
 
-## [1.0.0] - 2022-04-28
+## [v1.0.0] - 2022-04-28
 
 ### Added
 

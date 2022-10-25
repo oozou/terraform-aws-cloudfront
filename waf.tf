@@ -1,6 +1,6 @@
 module "waf" {
   source  = "oozou/waf/aws"
-  version = "1.0.2"
+  version = "1.0.3"
 
   count = var.is_enable_waf ? 1 : 0
 
