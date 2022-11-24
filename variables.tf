@@ -153,7 +153,7 @@ variable "s3_origin" {
 variable "origin" {
   description = "One or more origins for this distribution (multiples allowed)."
   type        = map(any)
-  default     = null
+  default     = {}
 }
 
 variable "lambda_function_association" {
