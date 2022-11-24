@@ -105,14 +105,14 @@ resource "aws_cloudfront_distribution" "distribution" {
   aliases = var.domain_aliases
 
   default_cache_behavior {
-    allowed_methods  = lookup(var.default_cache_behavior, "allowed_methods", ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"])
+    allowed_methods  = lookup(var.default_cache_behavior, "allowed_methods", ["GET", "HEAD", "OPTIONS"])
     cached_methods   = lookup(var.default_cache_behavior, "cached_methods", ["GET", "HEAD"])
     target_origin_id = local.is_origin_group ? local.origin_group_id : local.primary_origin_id
 
-    compress    = lookup(var.default_cache_behavior, "compress", true)
-    min_ttl     = lookup(var.default_cache_behavior, "min_ttl", 0)
-    default_ttl = lookup(var.default_cache_behavior, "default_ttl", 3600)
-    max_ttl     = lookup(var.default_cache_behavior, "max_ttl", 86400)
+    compress    = lookup(var.default_cache_behavior, "compress", null)
+    min_ttl     = lookup(var.default_cache_behavior, "min_ttl", null)
+    default_ttl = lookup(var.default_cache_behavior, "default_ttl", null)
+    max_ttl     = lookup(var.default_cache_behavior, "max_ttl", null)
 
     viewer_protocol_policy    = lookup(var.default_cache_behavior, "viewer_protocol_policy", "redirect-to-https")
     field_level_encryption_id = lookup(var.default_cache_behavior, "field_level_encryption_id", null)
