@@ -150,6 +150,12 @@ variable "s3_origin" {
   default = null
 }
 
+variable "origin" {
+  description = "One or more origins for this distribution (multiples allowed)."
+  type        = map(any)
+  default     = null
+}
+
 variable "lambda_function_association" {
   description = "The lambda assosiation used with encrypted s3"
   type = object({
