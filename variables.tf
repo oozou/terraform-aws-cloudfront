@@ -152,7 +152,7 @@ variable "s3_origin" {
 
 variable "origin" {
   description = "One or more origins for this distribution (multiples allowed)."
-  type        = map(any)
+  type        = any
   default     = {}
 }
 
