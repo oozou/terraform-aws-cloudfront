@@ -5,5 +5,5 @@ output "cf_domain_name" {
 
 output "cf_s3_iam_arn" {
   description = "A pre-generated ARN for use in S3 bucket policies (see below). Example: arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity E2QWRUHAPOMQZL."
-  value       = aws_cloudfront_origin_access_identity.this.iam_arn
+  value       = { for k, v in aws_cloudfront_origin_access_identity.this : k => v if var.origin_access_identities != {} }
 }
