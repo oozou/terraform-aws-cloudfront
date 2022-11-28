@@ -1,3 +1,8 @@
+output "cloudfront_distribution_arn" {
+  description = "The ARN (Amazon Resource Name) for the distribution."
+  value       = try(aws_cloudfront_distribution.distribution.arn, "")
+}
+
 output "cloudfront_distribution_domain_name" {
   description = "The domain name corresponding to the distribution. For example: d604721fxaaqy9.cloudfront.net"
   value       = aws_cloudfront_distribution.distribution.domain_name
