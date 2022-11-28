@@ -4,7 +4,7 @@ data "aws_route53_zone" "hosted_zone" {
   private_zone = false
 }
 
-resource "aws_cloudfront_origin_access_identity" "cloudfront_s3_policy" {
+resource "aws_cloudfront_origin_access_identity" "this" {
   comment = "Managed by terraform"
 }
 
@@ -91,7 +91,7 @@ resource "aws_cloudfront_distribution" "distribution" {
         for_each = var.s3_origin.is_create_oai ? [true] : []
 
         content {
-          origin_access_identity = aws_cloudfront_origin_access_identity.cloudfront_s3_policy.cloudfront_access_identity_path
+          origin_access_identity = aws_cloudfront_origin_access_identity.this.cloudfront_access_identity_path
         }
       }
     }
@@ -215,7 +215,17 @@ resource "aws_cloudfront_distribution" "distribution" {
         for_each = length(keys(lookup(origin.value, "s3_origin_config", {}))) == 0 ? [] : [lookup(origin.value, "s3_origin_config", {})]
 
         content {
-          origin_access_identity = lookup(s3_origin_config.value, "cloudfront_access_identity_path", lookup(lookup(aws_cloudfront_origin_access_identity.this, lookup(s3_origin_config.value, "origin_access_identity", ""), {}), "cloudfront_access_identity_path", null))
+          origin_access_identity = lookup(s3_origin_config.value, "cloudfront_access_identity_path",
+            lookup(
+              lookup(
+                aws_cloudfront_origin_access_identity.this,
+                lookup(s3_origin_config.value, "origin_access_identity", ""),
+                {}
+              ),
+              "cloudfront_access_identity_path",
+              null
+            )
+          )
         }
       }
 
