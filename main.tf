@@ -61,26 +61,26 @@ resource "aws_cloudfront_distribution" "distribution" {
     }
   }
 
-  origin {
-    domain_name = var.origin_config.origin_domain_name
-    origin_id   = local.primary_origin_id
+  # origin {
+  #   domain_name = var.origin_config.origin_domain_name
+  #   origin_id   = local.primary_origin_id
 
-    custom_header {
-      name  = "custom-header-token"
-      value = var.custom_header_token
-    }
+  #   custom_header {
+  #     name  = "custom-header-token"
+  #     value = var.custom_header_token
+  #   }
 
-    custom_origin_config {
-      http_port                = 80
-      https_port               = 443
-      origin_keepalive_timeout = 5
-      origin_protocol_policy   = "https-only"
-      origin_read_timeout      = var.origin_read_timeout
-      origin_ssl_protocols = [
-        "TLSv1.2"
-      ]
-    }
-  }
+  #   custom_origin_config {
+  #     http_port                = 80
+  #     https_port               = 443
+  #     origin_keepalive_timeout = 5
+  #     origin_protocol_policy   = "https-only"
+  #     origin_read_timeout      = var.origin_read_timeout
+  #     origin_ssl_protocols = [
+  #       "TLSv1.2"
+  #     ]
+  #   }
+  # }
 
   dynamic "origin" {
     for_each = local.is_origin_group ? [true] : []
@@ -135,7 +135,7 @@ resource "aws_cloudfront_distribution" "distribution" {
   default_cache_behavior {
     allowed_methods  = lookup(var.default_cache_behavior, "allowed_methods", ["GET", "HEAD", "OPTIONS"])
     cached_methods   = lookup(var.default_cache_behavior, "cached_methods", ["GET", "HEAD"])
-    target_origin_id = local.is_origin_group ? local.origin_group_id : local.primary_origin_id
+    target_origin_id = var.default_cache_behavior.target_origin_id
 
     compress    = lookup(var.default_cache_behavior, "compress", null)
     min_ttl     = lookup(var.default_cache_behavior, "min_ttl", null)
