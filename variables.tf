@@ -6,6 +6,7 @@ variable "origin_config" {
     origin_domain_name = string # Specify domain name for the origin such as a S3 bucket or any web server from which CloudFront is going to get web content
     origin_id          = string # Specify origin id. This value assist in distinguishing multiple origins in the same distribution from one another. Origin id must be unique within the distribution.
   })
+  default = null
 }
 
 variable "secondary_origin_config" {
