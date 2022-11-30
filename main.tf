@@ -2,7 +2,6 @@
 /*                                   Locals                                   */
 /* -------------------------------------------------------------------------- */
 locals {
-  is_origin_group               = var.secondary_origin_config != null ? true : false
   name                          = "${var.prefix}-${var.environment}-${var.name}-cf"
   aliases_records               = { for name in var.domain_aliases : name => { "name" = name } }
   is_use_cloudfront_cert_viewer = var.cdn_certificate_arn == null && var.is_automatic_create_dns_record == false && length(var.domain_aliases) == 0 ? true : false
@@ -52,31 +51,6 @@ resource "aws_cloudfront_distribution" "distribution" {
 
       member {
         origin_id = origin_group.value["secondary_member_origin_id"]
-      }
-    }
-  }
-
-  dynamic "origin" {
-    for_each = local.is_origin_group ? [true] : []
-
-    content {
-      domain_name = var.secondary_origin_config.secondary_domain_name
-      origin_id   = var.secondary_origin_config.secondary_origin_id
-
-      custom_header {
-        name  = "custom-header-token"
-        value = var.custom_header_token
-      }
-
-      custom_origin_config {
-        http_port                = 80
-        https_port               = 443
-        origin_keepalive_timeout = 5
-        origin_protocol_policy   = "https-only"
-        origin_read_timeout      = var.origin_read_timeout
-        origin_ssl_protocols = [
-          "TLSv1.2"
-        ]
       }
     }
   }

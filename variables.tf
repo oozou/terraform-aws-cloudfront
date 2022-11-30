@@ -1,14 +1,3 @@
-# CDN variables
-
-variable "secondary_origin_config" {
-  description = "Specify configuration related to secondary origin. This origin will be used for high availability with CloudFront primary origin"
-  type = object({
-    secondary_domain_name = string # Specify domain name for the origin such as a S3 bucket or any web server from which CloudFront is going to get web content
-    secondary_origin_id   = string # Specify origin id. This value assist in distinguishing multiple origins in the same distribution from one another. Origin id must be unique within the distribution.
-  })
-  default = null
-}
-
 variable "name" {
   description = "[Required] Name prefix used for resource naming in this component"
   type        = string
@@ -22,12 +11,6 @@ variable "prefix" {
 variable "environment" {
   description = "[Required] Name prefix used for resource naming in this component"
   type        = string
-}
-
-variable "custom_header_token" {
-  description = "[Required] Specify secret value for custom header"
-  type        = string
-  default     = ""
 }
 
 variable "log_aggregation_s3_bucket_name" {
@@ -94,12 +77,6 @@ variable "log_include_cookies" {
   description = "Include cookies in access logs"
   type        = bool
   default     = false
-}
-
-variable "origin_read_timeout" {
-  description = "Read timeout value specifies the amount of time CloudFront will wait for a response from the custom origin (this should be insync with your origin (like ALB) timeout)"
-  type        = number
-  default     = 60
 }
 
 #  ACM variables
