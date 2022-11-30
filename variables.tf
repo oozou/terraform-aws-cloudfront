@@ -138,34 +138,10 @@ variable "default_root_object" {
   default     = "index.html"
 }
 
-variable "s3_origin" {
-  description = "Specify configuration related to Origin S3"
-  type = object({
-    path_pattern           = string
-    allowed_methods        = list(string)
-    cached_methods         = list(string)
-    origin_domain_name     = string
-    origin_id              = string
-    viewer_protocol_policy = string
-    is_create_oai          = bool
-  })
-  default = null
-}
-
 variable "origin" {
   description = "One or more origins for this distribution (multiples allowed)."
   type        = any
   default     = {}
-}
-
-variable "lambda_function_association" {
-  description = "The lambda assosiation used with encrypted s3"
-  type = object({
-    event_type   = string
-    lambda_arn   = string
-    include_body = bool
-  })
-  default = null
 }
 
 variable "ordered_cache_behaviors" {

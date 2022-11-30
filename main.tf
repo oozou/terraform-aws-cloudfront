@@ -2,13 +2,12 @@
 /*                                   Locals                                   */
 /* -------------------------------------------------------------------------- */
 locals {
-  origin_group_id                    = "origin_group_${var.prefix}_${var.environment}_${var.name}}"
-  primary_origin_id                  = var.origin_config != null ? var.origin_config.origin_id : null
-  is_origin_group                    = var.secondary_origin_config != null ? true : false
-  enable_lambda_function_association = var.lambda_function_association != null ? true : false
-  resource_name                      = "${var.prefix}-${var.environment}-${var.name}-cf"
-  aliases_records                    = { for name in var.domain_aliases : name => { "name" = name } }
-  is_use_cloudfront_cert_viewer      = var.cdn_certificate_arn == null && var.is_automatic_create_dns_record == false && length(var.domain_aliases) == 0 ? true : false
+  origin_group_id               = "origin_group_${var.prefix}_${var.environment}_${var.name}}"
+  primary_origin_id             = var.origin_config != null ? var.origin_config.origin_id : null
+  is_origin_group               = var.secondary_origin_config != null ? true : false
+  resource_name                 = "${var.prefix}-${var.environment}-${var.name}-cf"
+  aliases_records               = { for name in var.domain_aliases : name => { "name" = name } }
+  is_use_cloudfront_cert_viewer = var.cdn_certificate_arn == null && var.is_automatic_create_dns_record == false && length(var.domain_aliases) == 0 ? true : false
 
   tags = merge(
     {
@@ -59,27 +58,6 @@ resource "aws_cloudfront_distribution" "distribution" {
       }
     }
   }
-
-  # origin {
-  #   domain_name = var.origin_config.origin_domain_name
-  #   origin_id   = local.primary_origin_id
-
-  #   custom_header {
-  #     name  = "custom-header-token"
-  #     value = var.custom_header_token
-  #   }
-
-  #   custom_origin_config {
-  #     http_port                = 80
-  #     https_port               = 443
-  #     origin_keepalive_timeout = 5
-  #     origin_protocol_policy   = "https-only"
-  #     origin_read_timeout      = var.origin_read_timeout
-  #     origin_ssl_protocols = [
-  #       "TLSv1.2"
-  #     ]
-  #   }
-  # }
 
   dynamic "origin" {
     for_each = local.is_origin_group ? [true] : []
