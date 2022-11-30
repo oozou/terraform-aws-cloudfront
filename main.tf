@@ -5,7 +5,7 @@ locals {
   origin_group_id               = "origin_group_${var.prefix}_${var.environment}_${var.name}}"
   primary_origin_id             = var.origin_config != null ? var.origin_config.origin_id : null
   is_origin_group               = var.secondary_origin_config != null ? true : false
-  resource_name                 = "${var.prefix}-${var.environment}-${var.name}-cf"
+  name                          = "${var.prefix}-${var.environment}-${var.name}-cf"
   aliases_records               = { for name in var.domain_aliases : name => { "name" = name } }
   is_use_cloudfront_cert_viewer = var.cdn_certificate_arn == null && var.is_automatic_create_dns_record == false && length(var.domain_aliases) == 0 ? true : false
 
@@ -301,13 +301,13 @@ resource "aws_cloudfront_distribution" "distribution" {
   logging_config {
     include_cookies = var.log_include_cookies
     bucket          = "${var.log_aggregation_s3_bucket_name}.s3.amazonaws.com"
-    prefix          = "${var.environment}/${local.resource_name}-cloudfront"
+    prefix          = "${var.environment}/${local.name}-cloudfront"
   }
 
   web_acl_id = var.is_enable_waf ? module.waf[0].web_acl_id : null
 
   # comment = "Managed by terraform" #<customer-prefix>-<env>-<paas>-cf
-  comment = local.resource_name
+  comment = local.name
 
-  tags = merge(local.tags, { "Name" : local.resource_name })
+  tags = merge(local.tags, { "Name" : local.name })
 }
