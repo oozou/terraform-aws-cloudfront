@@ -23,9 +23,23 @@ locals {
 }
 
 data "aws_route53_zone" "hosted_zone" {
-  count        = var.is_automatic_create_dns_record ? 1 : 0
+  count = var.is_automatic_create_dns_record ? 1 : 0
+
   name         = var.route53_domain_name
   private_zone = false
+}
+
+resource "aws_route53_record" "application" {
+  for_each = var.is_automatic_create_dns_record ? local.aliases_records : {}
+  zone_id  = data.aws_route53_zone.hosted_zone[0].id
+  name     = each.value.name
+  type     = "A"
+
+  alias {
+    name                   = lower(aws_cloudfront_distribution.distribution.domain_name)
+    zone_id                = aws_cloudfront_distribution.distribution.hosted_zone_id
+    evaluate_target_health = true
+  }
 }
 
 resource "aws_cloudfront_origin_access_identity" "this" {
@@ -39,7 +53,15 @@ resource "aws_cloudfront_origin_access_identity" "this" {
 }
 
 resource "aws_cloudfront_distribution" "distribution" {
-  enabled = true
+  enabled             = true
+  comment             = local.name
+  price_class         = var.price_class
+  web_acl_id          = var.is_enable_waf ? module.waf[0].web_acl_id : null
+  is_ipv6_enabled     = var.is_ipv6_enabled
+  default_root_object = var.default_root_object
+
+  # By-default, fqdn for the CDN should be added, it should be the one for which certificate is issued
+  aliases = var.domain_aliases
 
   dynamic "origin_group" {
     for_each = var.origin_group
@@ -61,13 +83,6 @@ resource "aws_cloudfront_distribution" "distribution" {
       }
     }
   }
-
-  is_ipv6_enabled = var.is_ipv6_enabled
-
-  default_root_object = var.default_root_object
-
-  # By-default, fqdn for the CDN should be added, it should be the one for which certificate is issued
-  aliases = var.domain_aliases
 
   default_cache_behavior {
     allowed_methods  = lookup(var.default_cache_behavior, "allowed_methods", ["GET", "HEAD", "OPTIONS"])
@@ -260,8 +275,6 @@ resource "aws_cloudfront_distribution" "distribution" {
     }
   }
 
-  price_class = var.price_class
-
   restrictions {
     geo_restriction {
       restriction_type = var.geo_restriction_config.geo_restriction_type
@@ -282,10 +295,54 @@ resource "aws_cloudfront_distribution" "distribution" {
     prefix          = "${var.environment}/${local.name}-cloudfront"
   }
 
-  web_acl_id = var.is_enable_waf ? module.waf[0].web_acl_id : null
+  tags = merge(local.tags, { "Name" : local.name })
+}
 
-  # comment = "Managed by terraform" #<customer-prefix>-<env>-<paas>-cf
-  comment = local.name
+resource "aws_iam_role" "main" {
+  count = var.is_create_log_access_role ? 1 : 0
+
+  name = "${local.name}-cloudfront-logs-access-role"
+  path = "/"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
 
   tags = merge(local.tags, { "Name" : local.name })
+}
+
+resource "aws_iam_role_policy" "main" {
+  count = var.is_create_log_access_role ? 1 : 0
+
+  name = "${local.name}-cloudfront-logs-access-policy"
+  role = aws_iam_role.main[0].id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+         "s3:GetBucketAcl",
+         "s3:PutBucketAcl"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:s3:::${var.log_aggregation_s3_bucket_name}"
+    }
+  ]
+}
+EOF
+
 }
