@@ -35,6 +35,7 @@ variable "environment" {
 variable "custom_header_token" {
   description = "[Required] Specify secret value for custom header"
   type        = string
+  default     = ""
 }
 
 variable "log_aggregation_s3_bucket_name" {
