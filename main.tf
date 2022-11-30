@@ -2,7 +2,7 @@
 /*                                   Locals                                   */
 /* -------------------------------------------------------------------------- */
 locals {
-  name                          = "${var.prefix}-${var.environment}-${var.name}-cf"
+  name                          = var.name_override == "" ? format("%s-%s-%s-cf", var.prefix, var.environment, var.name) : var.name_override
   aliases_records               = { for name in var.domain_aliases : name => { "name" = name } }
   is_use_cloudfront_cert_viewer = var.cdn_certificate_arn == null && var.is_automatic_create_dns_record == false && length(var.domain_aliases) == 0 ? true : false
 
@@ -13,6 +13,13 @@ locals {
     },
     var.tags
   )
+}
+
+locals {
+  empty_prefix      = var.prefix == "" ? true : false
+  empty_environment = var.environment == "" ? true : false
+  empty_name        = var.name == "" ? true : false
+  raise_empty_name  = local.name == "" && (local.empty_prefix || local.empty_environment || local.empty_name) ? file("`var.name_override` or (`var.prefix`, `var.environment` and `var.name is required`) ") : null
 }
 
 data "aws_route53_zone" "hosted_zone" {

@@ -1,16 +1,25 @@
-variable "name" {
-  description = "[Required] Name prefix used for resource naming in this component"
+variable "name_override" {
+  description = "(Optional) Full name to override usage from format(\"%s-%s-%s-cf\", var.prefix, var.environment, var.name)"
   type        = string
+  default     = ""
 }
 
 variable "prefix" {
-  description = "[Required] Name prefix used for resource naming in this component"
+  description = "(Optional) Prefix as a part of format(\"%s-%s-%s-cf\", var.prefix, var.environment, var.name); ex. oozou-xxx-xxx-cf"
   type        = string
+  default     = ""
 }
 
 variable "environment" {
-  description = "[Required] Name prefix used for resource naming in this component"
+  description = "(Optional) Environment as a part of format(\"%s-%s-%s-cf\", var.prefix, var.environment, var.name); ex. xxx-prod-xxx-cf"
   type        = string
+  default     = ""
+}
+
+variable "name" {
+  description = "(Optional) Name as a part of format(\"%s-%s-%s-cf\", var.prefix, var.environment, var.name); ex. xxx-xxx-cms-cf"
+  type        = string
+  default     = ""
 }
 
 variable "log_aggregation_s3_bucket_name" {
