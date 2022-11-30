@@ -5,7 +5,6 @@ locals {
   origin_group_id                    = "origin_group_${var.prefix}_${var.environment}_${var.name}}"
   primary_origin_id                  = var.origin_config != null ? var.origin_config.origin_id : null
   is_origin_group                    = var.secondary_origin_config != null ? true : false
-  enable_s3_origin                   = var.s3_origin != null ? true : false
   enable_lambda_function_association = var.lambda_function_association != null ? true : false
   resource_name                      = "${var.prefix}-${var.environment}-${var.name}-cf"
   aliases_records                    = { for name in var.domain_aliases : name => { "name" = name } }
@@ -107,24 +106,6 @@ resource "aws_cloudfront_distribution" "distribution" {
     }
   }
 
-  ##s3 origin
-  dynamic "origin" {
-    for_each = local.enable_s3_origin ? [true] : []
-
-    content {
-      domain_name = var.s3_origin.origin_domain_name
-      origin_id   = var.s3_origin.origin_id
-
-      dynamic "s3_origin_config" {
-        for_each = var.s3_origin.is_create_oai ? [true] : []
-
-        content {
-          origin_access_identity = aws_cloudfront_origin_access_identity.this.cloudfront_access_identity_path
-        }
-      }
-    }
-  }
-
   is_ipv6_enabled = var.is_ipv6_enabled
 
   default_root_object = var.default_root_object
@@ -186,44 +167,6 @@ resource "aws_cloudfront_distribution" "distribution" {
       content {
         event_type   = function.value.event_type
         function_arn = function.value.function_arn
-      }
-    }
-  }
-
-
-  ## ordered_cache_behavior for s3 origin
-  dynamic "ordered_cache_behavior" {
-    for_each = local.enable_s3_origin ? [true] : []
-
-    content {
-      path_pattern     = var.s3_origin.path_pattern
-      allowed_methods  = var.s3_origin.allowed_methods
-      cached_methods   = var.s3_origin.cached_methods
-      target_origin_id = var.s3_origin.origin_id #local.s3_origin_id
-
-      forwarded_values {
-        query_string = false
-        headers      = ["Origin"]
-
-        cookies {
-          forward = "none"
-        }
-      }
-
-      min_ttl                = 0
-      default_ttl            = 86400
-      max_ttl                = 31536000
-      compress               = true
-      viewer_protocol_policy = var.s3_origin.viewer_protocol_policy
-
-      dynamic "lambda_function_association" {
-        for_each = local.enable_lambda_function_association ? [true] : []
-
-        content {
-          event_type   = var.lambda_function_association.event_type
-          lambda_arn   = var.lambda_function_association.lambda_arn
-          include_body = var.lambda_function_association.include_body
-        }
       }
     }
   }
