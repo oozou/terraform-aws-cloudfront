@@ -1,14 +1,5 @@
 # CDN variables
 
-variable "origin_config" {
-  description = "[Required] Specify configuration related to Origin"
-  type = object({
-    origin_domain_name = string # Specify domain name for the origin such as a S3 bucket or any web server from which CloudFront is going to get web content
-    origin_id          = string # Specify origin id. This value assist in distinguishing multiple origins in the same distribution from one another. Origin id must be unique within the distribution.
-  })
-  default = null
-}
-
 variable "secondary_origin_config" {
   description = "Specify configuration related to secondary origin. This origin will be used for high availability with CloudFront primary origin"
   type = object({
@@ -136,6 +127,12 @@ variable "default_root_object" {
   description = "File name for default root object"
   type        = string
   default     = "index.html"
+}
+
+variable "origin_group" {
+  description = "One or more origin_group for this distribution (multiples allowed)."
+  type        = any
+  default     = {}
 }
 
 variable "origin" {

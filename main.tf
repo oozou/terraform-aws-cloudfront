@@ -2,8 +2,6 @@
 /*                                   Locals                                   */
 /* -------------------------------------------------------------------------- */
 locals {
-  origin_group_id               = "origin_group_${var.prefix}_${var.environment}_${var.name}}"
-  primary_origin_id             = var.origin_config != null ? var.origin_config.origin_id : null
   is_origin_group               = var.secondary_origin_config != null ? true : false
   name                          = "${var.prefix}-${var.environment}-${var.name}-cf"
   aliases_records               = { for name in var.domain_aliases : name => { "name" = name } }
@@ -35,26 +33,25 @@ resource "aws_cloudfront_origin_access_identity" "this" {
 }
 
 resource "aws_cloudfront_distribution" "distribution" {
-
   enabled = true
 
   dynamic "origin_group" {
-
-    for_each = local.is_origin_group ? [true] : []
+    for_each = var.origin_group
+    iterator = origin_group
 
     content {
-      origin_id = local.origin_group_id
+      origin_id = lookup(origin_group.value, "origin_id", origin_group.key)
 
       failover_criteria {
-        status_codes = [403, 404, 500, 502]
+        status_codes = origin_group.value["failover_status_codes"]
       }
 
       member {
-        origin_id = local.primary_origin_id
+        origin_id = origin_group.value["primary_member_origin_id"]
       }
 
       member {
-        origin_id = var.secondary_origin_config.secondary_origin_id
+        origin_id = origin_group.value["secondary_member_origin_id"]
       }
     }
   }
