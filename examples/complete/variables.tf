@@ -1,15 +1,20 @@
 variable "prefix" {
-  description = "[Required] Name prefix used for resource naming in this component"
+  description = "The prefix name of customer to be displayed in AWS console and resource"
   type        = string
 }
 
 variable "environment" {
-  description = "[Required] Name prefix used for resource naming in this component"
+  description = "Environment Variable used as a prefix"
+  type        = string
+}
+
+variable "name" {
+  description = "Name of the resource or project"
   type        = string
 }
 
 variable "custom_tags" {
-  description = "Custom tags which can be passed on to the AWS resources. They should be key value pairs having distinct keys."
-  type        = map(string)
+  description = "Custom tags which can be passed on to the AWS resources. They should be key value pairs having distinct keys"
+  type        = map(any)
   default     = {}
 }
