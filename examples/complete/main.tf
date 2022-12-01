@@ -359,49 +359,47 @@ module "cloudfront_distribution" {
   is_create_waf_logging_configuration = true
   waf_ip_sets_rule                    = var.waf_ip_sets_rule
   waf_ip_rate_based_rule              = var.waf_ip_rate_based_rule
-  waf_managed_rules                   = [
-  {
-    name            = "AWSManagedRulesCommonRuleSet",
-    priority        = 10
-    override_action = "none"
-    excluded_rules  = ["SizeRestrictions_BODY", "CrossSiteScripting_BODY"]
-  },
-  {
-    name            = "AWSManagedRulesAmazonIpReputationList",
-    priority        = 20
-    override_action = "none"
-    excluded_rules  = []
-  },
-  {
-    name            = "AWSManagedRulesKnownBadInputsRuleSet",
-    priority        = 30
-    override_action = "none"
-    excluded_rules  = []
-  },
-  {
-    name            = "AWSManagedRulesSQLiRuleSet",
-    priority        = 40
-    override_action = "none"
-    excluded_rules  = []
-  },
-  {
-    name            = "AWSManagedRulesLinuxRuleSet",
-    priority        = 50
-    override_action = "none"
-    excluded_rules  = []
-  },
-  {
-    name            = "AWSManagedRulesUnixRuleSet",
-    priority        = 60
-    override_action = "none"
-    excluded_rules  = []
-  }
-]
-  waf_default_action                  = "allow"
-  waf_redacted_fields                 = var.waf_redacted_fields
-  waf_logging_filter                  = var.waf_logging_filter
-
-is_create_waf_logging_configuration = true
+  waf_managed_rules = [
+    {
+      name            = "AWSManagedRulesCommonRuleSet",
+      priority        = 10
+      override_action = "none"
+      excluded_rules  = ["SizeRestrictions_BODY", "CrossSiteScripting_BODY"]
+    },
+    {
+      name            = "AWSManagedRulesAmazonIpReputationList",
+      priority        = 20
+      override_action = "none"
+      excluded_rules  = []
+    },
+    {
+      name            = "AWSManagedRulesKnownBadInputsRuleSet",
+      priority        = 30
+      override_action = "none"
+      excluded_rules  = []
+    },
+    {
+      name            = "AWSManagedRulesSQLiRuleSet",
+      priority        = 40
+      override_action = "none"
+      excluded_rules  = []
+    },
+    {
+      name            = "AWSManagedRulesLinuxRuleSet",
+      priority        = 50
+      override_action = "none"
+      excluded_rules  = []
+    },
+    {
+      name            = "AWSManagedRulesUnixRuleSet",
+      priority        = 60
+      override_action = "none"
+      excluded_rules  = []
+    }
+  ]
+  waf_default_action  = "allow"
+  waf_redacted_fields = []
+  waf_logging_filter  = {}
 
   providers = {
     aws = aws.virginia
