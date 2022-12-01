@@ -22,6 +22,9 @@ locals {
   raise_empty_name  = local.name == "" && (local.empty_prefix || local.empty_environment || local.empty_name) ? file("`var.name_override` or (`var.prefix`, `var.environment` and `var.name is required`) ") : null
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                   Route53                                  */
+/* -------------------------------------------------------------------------- */
 data "aws_route53_zone" "hosted_zone" {
   count = var.is_automatic_create_dns_record ? 1 : 0
 
@@ -42,6 +45,9 @@ resource "aws_route53_record" "application" {
   }
 }
 
+/* -------------------------------------------------------------------------- */
+/*                    Origin Access Control Indentity (OAI)                   */
+/* -------------------------------------------------------------------------- */
 resource "aws_cloudfront_origin_access_identity" "this" {
   for_each = var.origin_access_identities
 
@@ -52,6 +58,9 @@ resource "aws_cloudfront_origin_access_identity" "this" {
   }
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                Distribution                                */
+/* -------------------------------------------------------------------------- */
 resource "aws_cloudfront_distribution" "distribution" {
   enabled             = true
   comment             = local.name
@@ -298,6 +307,9 @@ resource "aws_cloudfront_distribution" "distribution" {
   tags = merge(local.tags, { "Name" : local.name })
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                     IAM                                    */
+/* -------------------------------------------------------------------------- */
 resource "aws_iam_role" "main" {
   count = var.is_create_log_access_role ? 1 : 0
 
