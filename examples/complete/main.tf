@@ -1,3 +1,5 @@
+data "aws_caller_identity" "this" {}
+
 /* -------------------------------------------------------------------------- */
 /*                                     S3                                     */
 /* -------------------------------------------------------------------------- */
@@ -145,14 +147,15 @@ module "fargate_cluster" {
   environment = var.environment
   name        = var.name
 
-  allow_access_from_principals = var.allow_access_from_principals
+  allow_access_from_principals = [data.aws_caller_identity.this.account_id]
 
   # VPC Information
-  vpc_id = var.networking_info["vpc_id"]
+  vpc_id = module.vpc.vpc_id
 
   # ALB
-  is_public_alb     = true
-  alb_listener_port = 443
+  is_public_alb                  = true
+  is_ignore_unsecured_connection = true
+  alb_listener_port              = 80
   # alb_certificate_arn = var.certificate_arn["ap-southeast-1"]
   public_subnet_ids = module.vpc.public_subnet_ids # If is_public_alb is `true`, public_subnet_ids is required
 
@@ -179,10 +182,7 @@ module "nginx_service" {
   # ALB
   is_attach_service_with_lb = true
   alb_listener_arn          = module.fargate_cluster.alb_listener_http_arn
-  # alb_host_header           = var.service_info["api"].service_alb_host_header
-  # alb_paths                 = var.service_info["api"].alb_paths
-  # alb_priority              = var.service_info["api"].alb_priority
-  # custom_header_token       = var.custom_header_token # Default is `""`, specific for only allow header with given token
+  alb_paths                 = ["*"]
   ## Target group that listener will take action
   vpc_id = module.vpc.vpc_id
   health_check = {
@@ -208,8 +208,7 @@ module "nginx_service" {
   service_discovery_namespace = module.fargate_cluster.service_discovery_namespace
   service_count               = 1
   application_subnet_ids      = module.vpc.private_subnet_ids
-  security_groups             = module.fargate_cluster.ecs_task_security_group_id
-  # deployment_circuit_breaker  = var.deployment_circuit_breaker
+  security_groups             = [module.fargate_cluster.ecs_task_security_group_id]
 
   tags = var.custom_tags
 }
@@ -217,6 +216,14 @@ module "nginx_service" {
 /* -------------------------------------------------------------------------- */
 /*                                 CloudFront                                 */
 /* -------------------------------------------------------------------------- */
+resource "aws_cloudfront_origin_access_control" "this" {
+  name                              = format("%s-%s-%s-oac", var.prefix, var.environment, var.name)
+  description                       = "OAC for S3 access with encryption"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
+}
+
 module "cloudfront_distribution" {
   source = "../../"
 
@@ -227,8 +234,7 @@ module "cloudfront_distribution" {
   # By-default, fqdn for the CDN should be added, it should be the one for which certificate is issued
   is_automatic_create_dns_record = false
   domain_aliases = [
-    # var.service_info["web"].service_alb_host_header,
-    # var.service_info["api"].service_alb_host_header
+    # "api.oozou.com"
   ]
   default_root_object = ""
 
@@ -243,7 +249,7 @@ module "cloudfront_distribution" {
       origin_id   = module.fargate_cluster.alb_dns_name
       custom_header = [{
         name  = "custom-header-token"
-        value = var.custom_header_token
+        value = "asdkjadasdkkasdemlcAaAAAaaaadasdwdFFFSDDSDSSDWDAWkcjrv"
       }]
       custom_origin_config = {
         http_port                = 80
@@ -357,8 +363,8 @@ module "cloudfront_distribution" {
   is_enable_waf_cloudwatch_metrics    = true
   is_enable_waf_sampled_requests      = true
   is_create_waf_logging_configuration = true
-  waf_ip_sets_rule                    = var.waf_ip_sets_rule
-  waf_ip_rate_based_rule              = var.waf_ip_rate_based_rule
+  waf_ip_sets_rule                    = []
+  waf_ip_rate_based_rule              = null
   waf_managed_rules = [
     {
       name            = "AWSManagedRulesCommonRuleSet",
