@@ -1,118 +1,107 @@
+/* -------------------------------------------------------------------------- */
+/*                                   Locals                                   */
+/* -------------------------------------------------------------------------- */
+locals {
+  name                          = var.name_override == "" ? format("%s-%s-%s-cf", var.prefix, var.environment, var.name) : var.name_override
+  aliases_records               = { for name in var.domain_aliases : name => { "name" = name } }
+  is_use_cloudfront_cert_viewer = var.cdn_certificate_arn == null && var.is_automatic_create_dns_record == false && length(var.domain_aliases) == 0 ? true : false
+
+  tags = merge(
+    {
+      "Environment" = var.environment,
+      "Terraform"   = "true"
+    },
+    var.tags
+  )
+}
+
+locals {
+  empty_prefix      = var.prefix == "" ? true : false
+  empty_environment = var.environment == "" ? true : false
+  empty_name        = var.name == "" ? true : false
+  raise_empty_name  = local.name == "" && (local.empty_prefix || local.empty_environment || local.empty_name) ? file("`var.name_override` or (`var.prefix`, `var.environment` and `var.name is required`) ") : null
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   Route53                                  */
+/* -------------------------------------------------------------------------- */
 data "aws_route53_zone" "hosted_zone" {
-  count        = var.is_automatic_create_dns_record ? 1 : 0
+  count = var.is_automatic_create_dns_record ? 1 : 0
+
   name         = var.route53_domain_name
   private_zone = false
 }
 
-resource "aws_cloudfront_origin_access_identity" "cloudfront_s3_policy" {
-  comment = "Managed by terraform"
+resource "aws_route53_record" "application" {
+  for_each = var.is_automatic_create_dns_record ? local.aliases_records : {}
+  zone_id  = data.aws_route53_zone.hosted_zone[0].id
+  name     = each.value.name
+  type     = "A"
+
+  alias {
+    name                   = lower(aws_cloudfront_distribution.distribution.domain_name)
+    zone_id                = aws_cloudfront_distribution.distribution.hosted_zone_id
+    evaluate_target_health = true
+  }
 }
 
+/* -------------------------------------------------------------------------- */
+/*                    Origin Access Control Indentity (OAI)                   */
+/* -------------------------------------------------------------------------- */
+resource "aws_cloudfront_origin_access_identity" "this" {
+  for_each = var.origin_access_identities
+
+  comment = each.value
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                Distribution                                */
+/* -------------------------------------------------------------------------- */
 resource "aws_cloudfront_distribution" "distribution" {
-
-  enabled = true
-
-  dynamic "origin_group" {
-
-    for_each = local.is_origin_group ? [true] : []
-
-    content {
-      origin_id = local.origin_group_id
-
-      failover_criteria {
-        status_codes = [403, 404, 500, 502]
-      }
-
-      member {
-        origin_id = local.primary_origin_id
-      }
-
-      member {
-        origin_id = var.secondary_origin_config.secondary_origin_id
-      }
-    }
-  }
-
-  origin {
-    domain_name = var.origin_config.origin_domain_name
-    origin_id   = local.primary_origin_id
-
-    custom_header {
-      name  = "custom-header-token"
-      value = var.custom_header_token
-    }
-
-    custom_origin_config {
-      http_port                = 80
-      https_port               = 443
-      origin_keepalive_timeout = 5
-      origin_protocol_policy   = "https-only"
-      origin_read_timeout      = var.origin_read_timeout
-      origin_ssl_protocols = [
-        "TLSv1.2"
-      ]
-    }
-  }
-
-  dynamic "origin" {
-    for_each = local.is_origin_group ? [true] : []
-
-    content {
-      domain_name = var.secondary_origin_config.secondary_domain_name
-      origin_id   = var.secondary_origin_config.secondary_origin_id
-
-      custom_header {
-        name  = "custom-header-token"
-        value = var.custom_header_token
-      }
-
-      custom_origin_config {
-        http_port                = 80
-        https_port               = 443
-        origin_keepalive_timeout = 5
-        origin_protocol_policy   = "https-only"
-        origin_read_timeout      = var.origin_read_timeout
-        origin_ssl_protocols = [
-          "TLSv1.2"
-        ]
-      }
-    }
-  }
-
-  ##s3 origin
-  dynamic "origin" {
-    for_each = local.enable_s3_origin ? [true] : []
-
-    content {
-      domain_name = var.s3_origin.origin_domain_name
-      origin_id   = var.s3_origin.origin_id
-
-      dynamic "s3_origin_config" {
-        for_each = var.s3_origin.is_create_oai ? [true] : []
-
-        content {
-          origin_access_identity = aws_cloudfront_origin_access_identity.cloudfront_s3_policy.cloudfront_access_identity_path
-        }
-      }
-    }
-  }
-
-  is_ipv6_enabled = var.is_ipv6_enabled
-
+  enabled             = true
+  comment             = local.name
+  price_class         = var.price_class
+  web_acl_id          = var.is_enable_waf ? module.waf[0].web_acl_id : null
+  is_ipv6_enabled     = var.is_ipv6_enabled
   default_root_object = var.default_root_object
 
   # By-default, fqdn for the CDN should be added, it should be the one for which certificate is issued
   aliases = var.domain_aliases
 
-  default_cache_behavior {
-    allowed_methods  = lookup(var.default_cache_behavior, "allowed_methods", ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"])
-    cached_methods   = lookup(var.default_cache_behavior, "cached_methods", ["GET", "HEAD"])
-    target_origin_id = local.is_origin_group ? local.origin_group_id : local.primary_origin_id
+  dynamic "origin_group" {
+    for_each = var.origin_group
+    iterator = origin_group
 
-    compress    = lookup(var.default_cache_behavior, "compress", true)
-    min_ttl     = lookup(var.default_cache_behavior, "min_ttl", 0)
-    default_ttl = lookup(var.default_cache_behavior, "default_ttl", 3600)
-    max_ttl     = lookup(var.default_cache_behavior, "max_ttl", 86400)
+    content {
+      origin_id = lookup(origin_group.value, "origin_id", origin_group.key)
+
+      failover_criteria {
+        status_codes = origin_group.value["failover_status_codes"]
+      }
+
+      member {
+        origin_id = origin_group.value["primary_member_origin_id"]
+      }
+
+      member {
+        origin_id = origin_group.value["secondary_member_origin_id"]
+      }
+    }
+  }
+
+  default_cache_behavior {
+    allowed_methods  = lookup(var.default_cache_behavior, "allowed_methods", ["GET", "HEAD", "OPTIONS"])
+    cached_methods   = lookup(var.default_cache_behavior, "cached_methods", ["GET", "HEAD"])
+    target_origin_id = var.default_cache_behavior.target_origin_id
+
+    compress    = lookup(var.default_cache_behavior, "compress", null)
+    min_ttl     = lookup(var.default_cache_behavior, "min_ttl", null)
+    default_ttl = lookup(var.default_cache_behavior, "default_ttl", null)
+    max_ttl     = lookup(var.default_cache_behavior, "max_ttl", null)
 
     viewer_protocol_policy    = lookup(var.default_cache_behavior, "viewer_protocol_policy", "redirect-to-https")
     field_level_encryption_id = lookup(var.default_cache_behavior, "field_level_encryption_id", null)
@@ -162,39 +151,63 @@ resource "aws_cloudfront_distribution" "distribution" {
     }
   }
 
-
-  ## ordered_cache_behavior for s3 origin
-  dynamic "ordered_cache_behavior" {
-    for_each = local.enable_s3_origin ? [true] : []
+  dynamic "origin" {
+    for_each = var.origin
 
     content {
-      path_pattern     = var.s3_origin.path_pattern
-      allowed_methods  = var.s3_origin.allowed_methods
-      cached_methods   = var.s3_origin.cached_methods
-      target_origin_id = var.s3_origin.origin_id #local.s3_origin_id
+      domain_name              = origin.value.domain_name
+      origin_id                = lookup(origin.value, "origin_id", origin.key)
+      origin_path              = lookup(origin.value, "origin_path", "")
+      connection_attempts      = lookup(origin.value, "connection_attempts", null)
+      connection_timeout       = lookup(origin.value, "connection_timeout", null)
+      origin_access_control_id = lookup(origin.value, "origin_access_control_id", null)
 
-      forwarded_values {
-        query_string = false
-        headers      = ["Origin"]
+      dynamic "s3_origin_config" {
+        for_each = length(keys(lookup(origin.value, "s3_origin_config", {}))) == 0 ? [] : [lookup(origin.value, "s3_origin_config", {})]
 
-        cookies {
-          forward = "none"
+        content {
+          origin_access_identity = lookup(s3_origin_config.value, "cloudfront_access_identity_path",
+            lookup(
+              lookup(
+                aws_cloudfront_origin_access_identity.this,
+                lookup(s3_origin_config.value, "origin_access_identity", ""),
+                {}
+              ),
+              "cloudfront_access_identity_path",
+              null
+            )
+          )
         }
       }
 
-      min_ttl                = 0
-      default_ttl            = 86400
-      max_ttl                = 31536000
-      compress               = true
-      viewer_protocol_policy = var.s3_origin.viewer_protocol_policy
-
-      dynamic "lambda_function_association" {
-        for_each = local.enable_lambda_function_association ? [true] : []
+      dynamic "custom_origin_config" {
+        for_each = length(lookup(origin.value, "custom_origin_config", "")) == 0 ? [] : [lookup(origin.value, "custom_origin_config", "")]
 
         content {
-          event_type   = var.lambda_function_association.event_type
-          lambda_arn   = var.lambda_function_association.lambda_arn
-          include_body = var.lambda_function_association.include_body
+          http_port                = custom_origin_config.value.http_port
+          https_port               = custom_origin_config.value.https_port
+          origin_protocol_policy   = custom_origin_config.value.origin_protocol_policy
+          origin_ssl_protocols     = custom_origin_config.value.origin_ssl_protocols
+          origin_keepalive_timeout = lookup(custom_origin_config.value, "origin_keepalive_timeout", null)
+          origin_read_timeout      = lookup(custom_origin_config.value, "origin_read_timeout", null)
+        }
+      }
+
+      dynamic "custom_header" {
+        for_each = lookup(origin.value, "custom_header", [])
+
+        content {
+          name  = custom_header.value.name
+          value = custom_header.value.value
+        }
+      }
+
+      dynamic "origin_shield" {
+        for_each = length(keys(lookup(origin.value, "origin_shield", {}))) == 0 ? [] : [lookup(origin.value, "origin_shield", {})]
+
+        content {
+          enabled              = origin_shield.value.enabled
+          origin_shield_region = origin_shield.value.origin_shield_region
         }
       }
     }
@@ -271,8 +284,6 @@ resource "aws_cloudfront_distribution" "distribution" {
     }
   }
 
-  price_class = var.price_class
-
   restrictions {
     geo_restriction {
       restriction_type = var.geo_restriction_config.geo_restriction_type
@@ -290,13 +301,60 @@ resource "aws_cloudfront_distribution" "distribution" {
   logging_config {
     include_cookies = var.log_include_cookies
     bucket          = "${var.log_aggregation_s3_bucket_name}.s3.amazonaws.com"
-    prefix          = "${var.environment}/${local.resource_name}-cloudfront"
+    prefix          = "${var.environment}/${local.name}-cloudfront"
   }
 
-  web_acl_id = var.is_enable_waf ? module.waf[0].web_acl_id : null
+  tags = merge(local.tags, { "Name" : local.name })
+}
 
-  # comment = "Managed by terraform" #<customer-prefix>-<env>-<paas>-cf
-  comment = local.resource_name
+/* -------------------------------------------------------------------------- */
+/*                                     IAM                                    */
+/* -------------------------------------------------------------------------- */
+resource "aws_iam_role" "main" {
+  count = var.is_create_log_access_role ? 1 : 0
 
-  tags = merge(local.tags, { "Name" : local.resource_name })
+  name = "${local.name}-cloudfront-logs-access-role"
+  path = "/"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+
+  tags = merge(local.tags, { "Name" : local.name })
+}
+
+resource "aws_iam_role_policy" "main" {
+  count = var.is_create_log_access_role ? 1 : 0
+
+  name = "${local.name}-cloudfront-logs-access-policy"
+  role = aws_iam_role.main[0].id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+         "s3:GetBucketAcl",
+         "s3:PutBucketAcl"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:s3:::${var.log_aggregation_s3_bucket_name}"
+    }
+  ]
+}
+EOF
+
 }

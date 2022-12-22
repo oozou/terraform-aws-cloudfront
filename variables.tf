@@ -1,40 +1,25 @@
-# CDN variables
-
-variable "origin_config" {
-  description = "[Required] Specify configuration related to Origin"
-  type = object({
-    origin_domain_name = string # Specify domain name for the origin such as a S3 bucket or any web server from which CloudFront is going to get web content
-    origin_id          = string # Specify origin id. This value assist in distinguishing multiple origins in the same distribution from one another. Origin id must be unique within the distribution.
-  })
-}
-
-variable "secondary_origin_config" {
-  description = "Specify configuration related to secondary origin. This origin will be used for high availability with CloudFront primary origin"
-  type = object({
-    secondary_domain_name = string # Specify domain name for the origin such as a S3 bucket or any web server from which CloudFront is going to get web content
-    secondary_origin_id   = string # Specify origin id. This value assist in distinguishing multiple origins in the same distribution from one another. Origin id must be unique within the distribution.
-  })
-  default = null
-}
-
-variable "name" {
-  description = "[Required] Name prefix used for resource naming in this component"
+variable "name_override" {
+  description = "(Optional) Full name to override usage from format(\"%s-%s-%s-cf\", var.prefix, var.environment, var.name)"
   type        = string
+  default     = ""
 }
 
 variable "prefix" {
-  description = "[Required] Name prefix used for resource naming in this component"
+  description = "(Optional) Prefix as a part of format(\"%s-%s-%s-cf\", var.prefix, var.environment, var.name); ex. oozou-xxx-xxx-cf"
   type        = string
+  default     = ""
 }
 
 variable "environment" {
-  description = "[Required] Name prefix used for resource naming in this component"
+  description = "(Optional) Environment as a part of format(\"%s-%s-%s-cf\", var.prefix, var.environment, var.name); ex. xxx-prod-xxx-cf"
   type        = string
+  default     = ""
 }
 
-variable "custom_header_token" {
-  description = "[Required] Specify secret value for custom header"
+variable "name" {
+  description = "(Optional) Name as a part of format(\"%s-%s-%s-cf\", var.prefix, var.environment, var.name); ex. xxx-xxx-cms-cf"
   type        = string
+  default     = ""
 }
 
 variable "log_aggregation_s3_bucket_name" {
@@ -103,12 +88,6 @@ variable "log_include_cookies" {
   default     = false
 }
 
-variable "origin_read_timeout" {
-  description = "Read timeout value specifies the amount of time CloudFront will wait for a response from the custom origin (this should be insync with your origin (like ALB) timeout)"
-  type        = number
-  default     = 60
-}
-
 #  ACM variables
 # domain name for the created CDN
 variable "is_automatic_create_dns_record" {
@@ -136,34 +115,28 @@ variable "default_root_object" {
   default     = "index.html"
 }
 
-variable "s3_origin" {
-  description = "Specify configuration related to Origin S3"
-  type = object({
-    path_pattern           = string
-    allowed_methods        = list(string)
-    cached_methods         = list(string)
-    origin_domain_name     = string
-    origin_id              = string
-    viewer_protocol_policy = string
-    is_create_oai          = bool
-  })
-  default = null
+variable "origin_group" {
+  description = "One or more origin_group for this distribution (multiples allowed)."
+  type        = any
+  default     = {}
 }
 
-variable "lambda_function_association" {
-  description = "The lambda assosiation used with encrypted s3"
-  type = object({
-    event_type   = string
-    lambda_arn   = string
-    include_body = bool
-  })
-  default = null
+variable "origin" {
+  description = "One or more origins for this distribution (multiples allowed)."
+  type        = any
+  default     = {}
 }
 
 variable "ordered_cache_behaviors" {
   description = "An ordered list of cache behaviors resource for this distribution. List from top to bottom in order of precedence. The topmost cache behavior will have precedence 0."
   type        = any
   default     = []
+}
+
+variable "origin_access_identities" {
+  description = "Map of CloudFront origin access identities (value as a comment)"
+  type        = map(string)
+  default     = {}
 }
 
 /* -------------------------------------------------------------------------- */

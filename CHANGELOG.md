@@ -2,6 +2,32 @@
 
 All notable changes to this module will be documented in this file.
 
+## [v1.1.0] - 2022-12-02
+
+### Added
+
+- Add `output.cloudfront_distribution_arn`
+- Add variables `var.name_override`, `var.origin`, `var.origin_group` and `var.origin_access_identities`
+- Add locals variables `local.empty_prefix`, `local.empty_environment`, `local.empty_name` and `local.raise_empty_name`
+- Add attributes `dynamic "origin"` for all origin in `aws_cloudfront_distribution.distribution`
+
+### Changed
+
+- Update outputs
+    - Rename `output.cf_domain_name` to `output.cloudfront_distribution_domain_name`
+    - Rename `output.cf_s3_iam_arn` to `cloudfront_origin_access_identities`
+- Update local `local.resource_name` to `local.name`
+- Update variable description for `var.prefix`, `var.environment` and `var.name`
+- Update resource `aws_cloudfront_distribution.distribution` code format
+- Update attribute `default_cache_behavior`; `compress`, `min_ttl`, `default_ttl`, `max_ttl` in `aws_cloudfront_distribution.distribution`
+
+### Removed
+
+- Remove files `dns.tf`, `examples/complete/acm.tf`, `examples/complete/s3.tf`, `iam.tf` and `locals.tf`
+- Remove variables `var.lambda_function_association`, `var.s3_origin`, `var.origin_read_timeout`, `var.custom_header_token`, `secondary_origin_config` and `var.origin_config`
+- Remove resource `aws_cloudfront_origin_access_identity.cloudfront_s3_policy`
+- Remove `custom_origin_config`, `dynamic "origin" (s3)`, `dynamic "ordered_cache_behavior" (s3)` attribute in `aws_cloudfront_distribution.distribution`
+
 ## [v1.0.7] - 2022-10-25
 
 ### Changed
