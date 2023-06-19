@@ -223,6 +223,7 @@ variable "waf_logging_filter" {
 }
 
 variable "waf_ip_sets_rule" {
+  # List of object need to have consis structure --> cv to any --> and make good description
   type = list(object({
     name               = string
     priority           = number
@@ -243,4 +244,31 @@ variable "waf_ip_rate_based_rule" {
   })
   description = "A rate-based rule tracks the rate of requests for each originating IP address, and triggers the rule action when the rate exceeds a limit that you specify on the number of requests in any 5-minute time span"
   default     = null
+}
+
+variable "waf_custom_rules" {
+  description = "Find the example for these structure"
+  type        = any
+  default     = []
+}
+
+variable "waf_ip_set" {
+  description = <<EOL
+  To create IP set ex.
+  ip_sets = {
+    "oozou-vpn-ipv4-set" = {
+      ip_addresses       = ["127.0.01/32"]
+      ip_address_version = "IPV4"
+    },
+    "oozou-vpn-ipv6-set" = {
+      ip_addresses       = ["2403:6200:88a2:a6f8:2096:9b42:31f8:61fd/128"]
+      ip_address_version = "IPV6"
+    }
+  }
+  EOL
+  type = map(object({
+    ip_addresses       = list(string)
+    ip_address_version = string
+  }))
+  default = {}
 }

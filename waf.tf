@@ -1,6 +1,7 @@
 module "waf" {
-  source  = "oozou/waf/aws"
-  version = "1.0.3"
+  # source  = "oozou/waf/aws"
+  # version = "1.0.3"
+  source = "git@github.com:oozou/terraform-aws-waf.git?ref=feat/waf-support-custom-rule"
 
   count = var.is_enable_waf ? 1 : 0
 
@@ -11,6 +12,9 @@ module "waf" {
   ip_sets_rule           = var.waf_ip_sets_rule
   ip_rate_based_rule     = var.waf_ip_rate_based_rule
   is_enable_default_rule = var.is_enable_waf_default_rule
+
+  ip_set       = var.waf_ip_set
+  custom_rules = var.waf_custom_rules
 
   managed_rules                    = var.waf_managed_rules
   default_action                   = var.waf_default_action
