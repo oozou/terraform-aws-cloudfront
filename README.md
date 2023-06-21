@@ -14,13 +14,13 @@ Terraform module with create Cloudfront resources on AWS.
 
 | Name                                              | Version |
 |---------------------------------------------------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.44.0  |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.67.0  |
 
 ## Modules
 
 | Name                                          | Source        | Version |
 |-----------------------------------------------|---------------|---------|
-| <a name="module_waf"></a> [waf](#module\_waf) | oozou/waf/aws | 1.0.3   |
+| <a name="module_waf"></a> [waf](#module\_waf) | oozou/waf/aws | 1.1.0   |
 
 ## Resources
 
@@ -65,8 +65,10 @@ Terraform module with create Cloudfront resources on AWS.
 | <a name="input_tags"></a> [tags](#input\_tags) | Custom tags which can be passed on to the AWS resources. They should be key value pairs having distinct keys. | `map(string)` | `{}` | no |
 | <a name="input_waf_cloudwatch_log_kms_key_id"></a> [waf\_cloudwatch\_log\_kms\_key\_id](#input\_waf\_cloudwatch\_log\_kms\_key\_id) | The ARN for the KMS encryption key. | `string` | `null` | no |
 | <a name="input_waf_cloudwatch_log_retention_in_days"></a> [waf\_cloudwatch\_log\_retention\_in\_days](#input\_waf\_cloudwatch\_log\_retention\_in\_days) | Specifies the number of days you want to retain log events Possible values are: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653, and 0. If you select 0, the events in the log group are always retained and never expire | `number` | `90` | no |
+| <a name="input_waf_custom_rules"></a> [waf\_custom\_rules](#input\_waf\_custom\_rules) | Find the example for these structure | `any` | `[]` | no |
 | <a name="input_waf_default_action"></a> [waf\_default\_action](#input\_waf\_default\_action) | The action to perform if none of the rules contained in the WebACL match. | `string` | `"block"` | no |
 | <a name="input_waf_ip_rate_based_rule"></a> [waf\_ip\_rate\_based\_rule](#input\_waf\_ip\_rate\_based\_rule) | A rate-based rule tracks the rate of requests for each originating IP address, and triggers the rule action when the rate exceeds a limit that you specify on the number of requests in any 5-minute time span | <pre>object({<br>    name     = string<br>    priority = number<br>    action   = string<br>    limit    = number<br>  })</pre> | `null` | no |
+| <a name="input_waf_ip_set"></a> [waf\_ip\_set](#input\_waf\_ip\_set) | To create IP set ex.<br>  ip\_sets = {<br>    "oozou-vpn-ipv4-set" = {<br>      ip\_addresses       = ["127.0.01/32"]<br>      ip\_address\_version = "IPV4"<br>    },<br>    "oozou-vpn-ipv6-set" = {<br>      ip\_addresses       = ["2403:6200:88a2:a6f8:2096:9b42:31f8:61fd/128"]<br>      ip\_address\_version = "IPV6"<br>    }<br>  } | <pre>map(object({<br>    ip_addresses       = list(string)<br>    ip_address_version = string<br>  }))</pre> | `{}` | no |
 | <a name="input_waf_ip_sets_rule"></a> [waf\_ip\_sets\_rule](#input\_waf\_ip\_sets\_rule) | A rule to detect web requests coming from particular IP addresses or address ranges. | <pre>list(object({<br>    name               = string<br>    priority           = number<br>    ip_set             = list(string)<br>    action             = string<br>    ip_address_version = string<br>  }))</pre> | `[]` | no |
 | <a name="input_waf_logging_filter"></a> [waf\_logging\_filter](#input\_waf\_logging\_filter) | A configuration block that specifies which web requests are kept in the logs and which are dropped. You can filter on the rule action and on the web request labels that were applied by matching rules during web ACL evaluation. | `any` | `{}` | no |
 | <a name="input_waf_managed_rules"></a> [waf\_managed\_rules](#input\_waf\_managed\_rules) | List of Managed WAF rules. | <pre>list(object({<br>    name            = string<br>    priority        = number<br>    override_action = string<br>    excluded_rules  = list(string)<br>  }))</pre> | `[]` | no |
