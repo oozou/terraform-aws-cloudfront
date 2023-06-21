@@ -2,6 +2,16 @@
 
 All notable changes to this module will be documented in this file.
 
+## [v1.2.0] - 2023-06-21
+
+### Added
+
+- Add variables `waf_custom_rules` and `waf_ip_set`
+
+### Changed
+
+- WAF module version from `1.0.3` to `1.1.0`
+
 ## [v1.1.0] - 2022-12-02
 
 ### Added
