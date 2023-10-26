@@ -2,6 +2,16 @@
 
 All notable changes to this module will be documented in this file.
 
+## [v1.2.1] - 2023-10-26
+
+- Update WAF module version to v1.1.1
+  - Resource: `module.waf`
+  - Variable: `waf_custom_response_body`
+
+### Changed
+
+- Add tagging with module name in `local.tags`
+
 ## [v1.2.0] - 2023-06-21
 
 ### Added
