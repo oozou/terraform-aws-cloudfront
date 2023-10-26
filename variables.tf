@@ -272,3 +272,9 @@ variable "waf_ip_set" {
   }))
   default = {}
 }
+
+variable "waf_custom_response_body" {
+  description = "(optional) Define custom response body"
+  type        = list(any)
+  default     = []
+}

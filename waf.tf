@@ -1,6 +1,6 @@
 module "waf" {
   source  = "oozou/waf/aws"
-  version = "1.1.0"
+  version = "1.1.1"
 
   count = var.is_enable_waf ? 1 : 0
 
@@ -12,8 +12,9 @@ module "waf" {
   ip_rate_based_rule     = var.waf_ip_rate_based_rule
   is_enable_default_rule = var.is_enable_waf_default_rule
 
-  ip_set       = var.waf_ip_set
-  custom_rules = var.waf_custom_rules
+  ip_set               = var.waf_ip_set
+  custom_rules         = var.waf_custom_rules
+  custom_response_body = var.waf_custom_response_body
 
   managed_rules                    = var.waf_managed_rules
   default_action                   = var.waf_default_action

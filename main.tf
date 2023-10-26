@@ -10,6 +10,7 @@ locals {
     {
       "Environment" = var.environment,
       "Terraform"   = "true"
+      "Module"      = "terraform-aws-cloudfront"
     },
     var.tags
   )
