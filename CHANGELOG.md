@@ -2,6 +2,12 @@
 
 All notable changes to this module will be documented in this file.
 
+## [v1.0.8] - 2023-11-09
+
+### Added
+
+- Add `output.cloudfront_distribution_arn`
+
 ## [v1.0.7] - 2022-10-25
 
 ### Changed
