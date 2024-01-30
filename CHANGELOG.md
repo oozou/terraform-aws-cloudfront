@@ -2,7 +2,15 @@
 
 All notable changes to this module will be documented in this file.
 
+## [v1.2.2] - 2024-01-30
+
+### Changed
+
+- Update minimum protocol version to `TLSv1.2_2021`
+
 ## [v1.2.1] - 2023-10-26
+
+### Changed
 
 - Update WAF module version to v1.1.1
   - Resource: `module.waf`
