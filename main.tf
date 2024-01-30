@@ -295,7 +295,7 @@ resource "aws_cloudfront_distribution" "distribution" {
   viewer_certificate {
     acm_certificate_arn            = local.is_use_cloudfront_cert_viewer ? null : var.cdn_certificate_arn
     cloudfront_default_certificate = local.is_use_cloudfront_cert_viewer ? true : false
-    minimum_protocol_version       = local.is_use_cloudfront_cert_viewer ? "TLSv1" : "TLSv1.2_2018"
+    minimum_protocol_version       = local.is_use_cloudfront_cert_viewer ? "TLSv1" : "TLSv1.2_2021"
     ssl_support_method             = local.is_use_cloudfront_cert_viewer ? null : "sni-only"
   }
 
