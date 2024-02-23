@@ -2,7 +2,7 @@
 
 All notable changes to this module will be documented in this file.
 
-## [v1.2.1] - 2024-02-23
+## [v1.2.2] - 2024-02-23
 
 - add new var for enable/disable distribution and retain_on_delete
   - Resource: `aws_cloudfront_distribution`
