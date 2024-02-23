@@ -2,6 +2,12 @@
 
 All notable changes to this module will be documented in this file.
 
+## [v1.2.1] - 2024-02-23
+
+- add new var for enable/disable distribution and retain_on_delete
+  - Resource: `aws_cloudfront_distribution`
+  - Variable: `is_enable_distribution` and `retain_on_delete`
+
 ## [v1.2.1] - 2023-10-26
 
 - Update WAF module version to v1.1.1

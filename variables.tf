@@ -76,6 +76,20 @@ variable "geo_restriction_config" {
   }
 }
 
+
+
+variable "is_enable_distribution" {
+  description = "enable or disable distribution"
+  type        = bool
+  default     = true
+}
+
+variable "retain_on_delete" {
+  description = "retain cloudfront when destroy"
+  type        = bool
+  default     = true
+}
+
 variable "is_ipv6_enabled" {
   description = "State of CloudFront IPv6"
   type        = bool

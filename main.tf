@@ -63,12 +63,13 @@ resource "aws_cloudfront_origin_access_identity" "this" {
 /*                                Distribution                                */
 /* -------------------------------------------------------------------------- */
 resource "aws_cloudfront_distribution" "distribution" {
-  enabled             = true
+  enabled             = var.is_enable_distribution
   comment             = local.name
   price_class         = var.price_class
   web_acl_id          = var.is_enable_waf ? module.waf[0].web_acl_id : null
   is_ipv6_enabled     = var.is_ipv6_enabled
   default_root_object = var.default_root_object
+  retain_on_delete    = var.retain_on_delete
 
   # By-default, fqdn for the CDN should be added, it should be the one for which certificate is issued
   aliases = var.domain_aliases
