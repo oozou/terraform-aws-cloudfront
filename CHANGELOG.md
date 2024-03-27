@@ -1,7 +1,11 @@
 # Change Log
 
 All notable changes to this module will be documented in this file.
+## [v1.2.3] - 2024-03-27
 
+- Update WAF module version to v1.2.0
+  - Resource: `module.waf`
+  - 
 ## [v1.2.2] - 2024-02-23
 
 - add new var for enable/disable distribution and retain_on_delete
