@@ -357,6 +357,17 @@ module "cloudfront_distribution" {
   # DNS Mapping variables
   cdn_certificate_arn = null
 
+  # Custom error response
+  custom_error_response = [{
+    error_code         = 404
+    response_code      = 404
+    response_page_path = "/errors/404.html"
+    }, {
+    error_code         = 403
+    response_code      = 403
+    response_page_path = "/errors/403.html"
+  }]
+
   # Waf
   is_enable_waf                       = true
   is_enable_waf_default_rule          = false
