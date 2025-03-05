@@ -280,9 +280,14 @@ resource "aws_cloudfront_distribution" "distribution" {
   }
 
   dynamic "custom_error_response" {
-    for_each = ["400", "403", "404", "405", "414", "500", "501", "502", "503", "504"]
+    for_each = length(flatten([var.custom_error_response])[0]) > 0 ? flatten([var.custom_error_response]) : []
+
     content {
-      error_code = custom_error_response.value
+      error_code = custom_error_response.value["error_code"]
+
+      response_code         = lookup(custom_error_response.value, "response_code", null)
+      response_page_path    = lookup(custom_error_response.value, "response_page_path", null)
+      error_caching_min_ttl = lookup(custom_error_response.value, "error_caching_min_ttl", null)
     }
   }
 

@@ -1,6 +1,12 @@
 # Change Log
 
 All notable changes to this module will be documented in this file.
+## [v1.2.4] - 2025-03-05
+
+- add var custom_error_response to support custom error response
+  - Resource: `aws_cloudfront_distribution.distribution`
+  - Variable: `custom_error_response`
+
 ## [v1.2.3] - 2024-03-27
 
 - Update WAF module version to v1.2.0
