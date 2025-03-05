@@ -153,6 +153,23 @@ variable "origin_access_identities" {
   default     = {}
 }
 
+variable "custom_error_response" {
+  description = <<EOF 
+  One or more custom error response elements
+    custom_error_response = [{
+    error_code         = 404
+    response_code      = 404
+    response_page_path = "/errors/404.html"
+    }, {
+    error_code         = 403
+    response_code      = 403
+    response_page_path = "/errors/403.html"
+  }]
+  EOF
+  type        = any
+  default     = {}
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                     IAM                                    */
 /* -------------------------------------------------------------------------- */
