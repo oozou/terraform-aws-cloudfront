@@ -70,6 +70,7 @@ resource "aws_cloudfront_distribution" "distribution" {
   is_ipv6_enabled     = var.is_ipv6_enabled
   default_root_object = var.default_root_object
   retain_on_delete    = var.retain_on_delete
+  staging             = var.is_staging
 
   # By-default, fqdn for the CDN should be added, it should be the one for which certificate is issued
   aliases = var.domain_aliases
@@ -311,6 +312,8 @@ resource "aws_cloudfront_distribution" "distribution" {
     prefix          = "${var.environment}/${local.name}-cloudfront"
   }
 
+  continuous_deployment_policy_id = var.is_create_continuous_deployment_policy ? aws_cloudfront_continuous_deployment_policy.main[0].id : null
+
   tags = merge(local.tags, { "Name" : local.name })
 }
 
@@ -363,5 +366,39 @@ resource "aws_iam_role_policy" "main" {
   ]
 }
 EOF
+
+}
+
+resource "aws_cloudfront_continuous_deployment_policy" "main" {
+  enabled = var.is_create_continuous_deployment_policy
+
+  staging_distribution_dns_names {
+    items    = [var.staging_domain_name]
+    quantity = 1
+  }
+
+  dynamic "traffic_config" {
+    for_each = var.traffic_config.type != "" ? [1] : []
+
+    content {
+      type = var.traffic_config.type
+
+      dynamic "single_header_config" {
+        for_each = var.traffic_config.type == "SingleHeader" ? [1] : []
+        content {
+          header = var.traffic_config.single_header_config.header
+          value  = var.traffic_config.single_header_config.value
+        }
+      }
+
+      dynamic "session_stickiness_config" {
+        for_each = contains(keys(var.traffic_config.single_weight_config), "session_stickiness_config") && var.traffic_config.single_weight_config.session_stickiness_config != null ? [1] : []
+        content {
+          idle_ttl    = var.traffic_config.single_weight_config.session_stickiness_config.idle_ttl
+          maximum_ttl = var.traffic_config.single_weight_config.session_stickiness_config.maximum_ttl
+        }
+      }
+    }
+  }
 
 }

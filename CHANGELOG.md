@@ -1,6 +1,17 @@
 # Change Log
 
 All notable changes to this module will be documented in this file.
+
+## [v1.3.0] - 2025-05-20
+
+- Add resrouce and var to support continuous_deployment
+  - var: 
+    - `is_staging`
+    - `is_create_continuous_deployment_policy` 
+    - `staging_domain_name`
+    - `traffic_config`
+  - resource: `aws_cloudfront_continuous_deployment_policy`
+
 ## [v1.2.5] - 2025-03-31
 
 - Update WAF module version to v1.3.0

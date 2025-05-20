@@ -298,3 +298,52 @@ variable "waf_custom_response_body" {
   type        = list(any)
   default     = []
 }
+
+variable "is_staging" {
+  description = "if it's staging distribution"
+  type        = bool
+  default     = false
+}
+
+variable "is_create_continuous_deployment_policy" {
+  description = "Whether to create continuous deployment policy or not"
+  type        = bool
+  default     = false
+}
+
+variable "staging_domain_name" {
+  description = "staging domain name"
+  type        = string
+  default     = ""
+}
+
+variable "traffic_config" {
+  type = object({
+    type = string
+    single_header_config = optional(object({
+      header   = string
+      value    = string
+      behavior = string
+    }))
+    single_weight_config = optional(object({
+      weight = number
+      session_stickiness_config = optional(object({
+        idle_ttl    = number
+        maximum_ttl = number
+      }))
+    }))
+  })
+
+  default = null
+
+  validation {
+    condition = (
+      var.traffic_config == null ||
+      (
+        (var.traffic_config.type == "SingleHeader" && var.traffic_config.single_header_config != null) ||
+        (var.traffic_config.type == "Weighted" && var.traffic_config.single_weight_config != null)
+      )
+    )
+    error_message = "You must define a valid traffic_config with type 'SingleHeader' or 'Weighted' and provide the corresponding config block."
+  }
+}
