@@ -341,9 +341,9 @@ variable "traffic_config" {
       var.traffic_config == null ||
       (
         (var.traffic_config.type == "SingleHeader" && var.traffic_config.single_header_config != null) ||
-        (var.traffic_config.type == "Weighted" && var.traffic_config.single_weight_config != null)
+        (var.traffic_config.type == "SingleWeight" && var.traffic_config.single_weight_config != null)
       )
     )
-    error_message = "You must define a valid traffic_config with type 'SingleHeader' or 'Weighted' and provide the corresponding config block."
+    error_message = "You must define a valid traffic_config with type 'SingleHeader' or 'SingleWeight' and provide the corresponding config block."
   }
 }
