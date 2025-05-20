@@ -335,15 +335,4 @@ variable "traffic_config" {
   })
 
   default = null
-
-  validation {
-    condition = (
-      var.traffic_config == null ||
-      (
-        (var.traffic_config.type == "SingleHeader" && var.traffic_config.single_header_config != null) ||
-        (var.traffic_config.type == "SingleWeight" && var.traffic_config.single_weight_config != null)
-      )
-    )
-    error_message = "You must define a valid traffic_config with type 'SingleHeader' or 'SingleWeight' and provide the corresponding config block."
-  }
 }
