@@ -323,7 +323,6 @@ variable "traffic_config" {
     single_header_config = optional(object({
       header   = string
       value    = string
-      behavior = string
     }))
     single_weight_config = optional(object({
       weight = number
