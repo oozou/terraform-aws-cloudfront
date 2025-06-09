@@ -2,6 +2,10 @@
 
 All notable changes to this module will be documented in this file.
 
+## [v1.3.2] - 2025-06-09
+
+- Add var `minimum_protocol_version` with default vaue `TLSv1.2_2021`
+
 ## [v1.3.1] - 2025-06-09
 
 - Update WAF module version to 1.3.1
