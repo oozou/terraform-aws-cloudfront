@@ -2,6 +2,10 @@
 
 All notable changes to this module will be documented in this file.
 
+## [v1.3.1] - 2025-06-09
+
+- Update WAF module version to 1.3.1
+
 ## [v1.3.0] - 2025-05-20
 
 - Add resrouce and var to support continuous_deployment

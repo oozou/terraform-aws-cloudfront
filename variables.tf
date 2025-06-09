@@ -321,8 +321,8 @@ variable "traffic_config" {
   type = object({
     type = string
     single_header_config = optional(object({
-      header   = string
-      value    = string
+      header = string
+      value  = string
     }))
     single_weight_config = optional(object({
       weight = number

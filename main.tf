@@ -370,7 +370,7 @@ EOF
 }
 
 resource "aws_cloudfront_continuous_deployment_policy" "main" {
-  count = var.is_create_continuous_deployment_policy ? 1 : 0
+  count   = var.is_create_continuous_deployment_policy ? 1 : 0
   enabled = var.is_create_continuous_deployment_policy
 
   staging_distribution_dns_names {
@@ -399,8 +399,8 @@ resource "aws_cloudfront_continuous_deployment_policy" "main" {
           dynamic "session_stickiness_config" {
             for_each = var.traffic_config.single_weight_config.session_stickiness_config != null ? [1] : []
             content {
-                idle_ttl    = var.traffic_config.single_weight_config.session_stickiness_config.idle_ttl
-                maximum_ttl = var.traffic_config.single_weight_config.session_stickiness_config.maximum_ttl
+              idle_ttl    = var.traffic_config.single_weight_config.session_stickiness_config.idle_ttl
+              maximum_ttl = var.traffic_config.single_weight_config.session_stickiness_config.maximum_ttl
             }
           }
         }
