@@ -337,7 +337,7 @@ variable "traffic_config" {
 }
 
 variable "minimum_protocol_version" {
-  description = "The SSL protocol version to use for the distribution. Valid values are `SSLv3`, `TLSv1`, `TLSv1.1`, `TLSv1.2`, and `TLSv1.3`. Default is `TLSv1.2`."
+  description = "Minimum version of the SSL protocol that you want CloudFront to use for HTTPS connections"
   type        = string
   default     = "TLSv1.2_2021"
 }
