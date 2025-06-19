@@ -132,7 +132,7 @@ resource "aws_s3_object" "default_object" {
 /* -------------------------------------------------------------------------- */
 module "vpc" {
   source       = "oozou/vpc/aws"
-  version      = "1.2.4"
+  version      = "2.0.3"
   prefix       = var.prefix
   environment  = var.environment
   account_mode = "spoke"
