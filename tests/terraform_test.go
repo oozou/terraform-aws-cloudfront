@@ -74,106 +74,116 @@ func TestTerraformAWSCloudFrontModule(t *testing.T) {
 	defer func() {
 		t.Logf("Removing OAC and WAF association from CloudFront distribution")
 		// Remove CloudFront OAC and WAF association before destroying resources
-		distributionArn, err := terraform.OutputE(t, terraformOptions, "cloudfront_distribution_arn")
-		t.Logf("CloudFront distribution ARN: %s", distributionArn)
-		if err == nil && distributionArn != "" {
-			// Extract distribution ID from ARN
-			arnParts := strings.Split(distributionArn, "/")
-			if len(arnParts) > 0 {
-				distributionId := arnParts[len(arnParts)-1]
-				
-				// Create AWS config for us-east-1 (CloudFront is global but API is in us-east-1)
-				cfg := createAWSConfig(t, "us-east-1")
-				cloudfrontClient := cloudfront.NewFromConfig(cfg)
-				
-				// Get current distribution configuration
-				getDistributionInput := &cloudfront.GetDistributionInput{
-					Id: aws.String(distributionId),
-				}
-				
-				distribution, err := cloudfrontClient.GetDistribution(context.TODO(), getDistributionInput)
+		if !t.Failed() {
+			// Only attempt cleanup if terraform apply succeeded
+			distributionArn, err := terraform.OutputE(t, terraformOptions, "cloudfront_distribution_arn")
+			t.Logf("CloudFront distribution ARN: %s", distributionArn)
+			if err == nil && distributionArn != "" {
+				// Extract distribution ID from ARN
+				arnParts := strings.Split(distributionArn, "/")
+				if len(arnParts) > 0 {
+					distributionId := arnParts[len(arnParts)-1]
+					
+					// Create AWS config for us-east-1 (CloudFront is global but API is in us-east-1)
+					cfg := createAWSConfig(t, "us-east-1")
+					cloudfrontClient := cloudfront.NewFromConfig(cfg)
+					
+					// Get current distribution configuration
+					getDistributionInput := &cloudfront.GetDistributionInput{
+						Id: aws.String(distributionId),
+					}
+					
+					distribution, err := cloudfrontClient.GetDistribution(context.TODO(), getDistributionInput)
 
-				distConfig := distribution.Distribution.DistributionConfig
-				t.Logf("CloudFront distribution ID: %s", distributionId)
-				if err == nil && distribution.Distribution != nil {
-
-					// Check if OAC is associated
-					// for _, origin := range distConfig.Origins.Items {
-					// 	if origin.S3OriginConfig != nil && origin.OriginAccessControlId != nil {
-					// 		fmt.Printf("Removing OAC from origin: %s\n", *origin.Id)
-					// 		origin.OriginAccessControlId = nil
-					// 	}
-					// }
-
-					for i := range distConfig.Origins.Items {
-						origin := distConfig.Origins.Items[i]
-						if origin.S3OriginConfig != nil && origin.OriginAccessControlId != nil {
-							fmt.Printf("Removing OAC from origin: %s\n", *origin.Id)
-							distConfig.Origins.Items[i].OriginAccessControlId = nil
+					distConfig := distribution.Distribution.DistributionConfig
+					t.Logf("CloudFront distribution ID: %s", distributionId)
+					if err == nil && distribution.Distribution != nil {
+						for i := range distConfig.Origins.Items {
+							origin := distConfig.Origins.Items[i]
+							if origin.S3OriginConfig != nil && origin.OriginAccessControlId != nil {
+								fmt.Printf("Removing OAC from origin: %s\n", *origin.Id)
+								distConfig.Origins.Items[i].OriginAccessControlId = nil
+							}
+						}						
+						t.Logf("distConfig: %v", distConfig)
+						_, err = cloudfrontClient.UpdateDistribution(context.TODO(), &cloudfront.UpdateDistributionInput{
+							Id:                 aws.String(distributionId),
+							DistributionConfig: distConfig,
+							IfMatch:           distribution.ETag,
+						})
+						if err != nil {
+							t.Logf("failed to update distribution: %v", err)
 						}
-					}						
-					t.Logf("distConfig: %v", distConfig)
-					_, err = cloudfrontClient.UpdateDistribution(context.TODO(), &cloudfront.UpdateDistributionInput{
-						Id:                 aws.String(distributionId),
-						DistributionConfig: distConfig,
-						IfMatch:           distribution.ETag,
+
+						// Check if WAF is associated
+						distribution, err:= cloudfrontClient.GetDistribution(context.TODO(), getDistributionInput)
+						if err != nil {
+							t.Logf("failed to get distribution: %v", err)
+						}
+						if distribution.Distribution.DistributionConfig.WebACLId != nil && 
+						   *distribution.Distribution.DistributionConfig.WebACLId != "" {
+							
+							t.Logf("Removing WAF association from CloudFront distribution %s before cleanup", distributionId)
+							
+							// Create a copy of the distribution config and remove WAF association
+							config := distribution.Distribution.DistributionConfig
+							config.WebACLId = aws.String("")
+							
+							// Update the distribution to remove WAF association
+							t.Logf("check new config: %v", config)
+							updateDistributionInput := &cloudfront.UpdateDistributionInput{
+								Id:                 aws.String(distributionId),
+								DistributionConfig: config,
+								IfMatch:           distribution.ETag,
+							}
+							
+							_, err := cloudfrontClient.UpdateDistribution(context.TODO(), updateDistributionInput)
+							if err != nil {
+								t.Logf("Warning: Failed to remove WAF association: %v", err)
+							} else {
+								t.Logf("Successfully removed WAF association from CloudFront distribution")
+								
+								// Wait for distribution to be deployed before proceeding with destroy
+								t.Logf("Waiting for CloudFront distribution to be deployed...")
+								time.Sleep(2 * time.Minute)
+							}
+						}
+					}
+				}					
+			}	
+		}
+		
+		terraform.Destroy(t, terraformOptions)
+		if !t.Failed() {
+			// Only attempt cleanup if terraform apply succeeded
+			distributionArn, err := terraform.OutputE(t, terraformOptions, "cloudfront_distribution_arn")
+			t.Logf("CloudFront distribution ARN: %s", distributionArn)
+			if err == nil && distributionArn != "" {
+				// Extract distribution ID from ARN
+				arnParts := strings.Split(distributionArn, "/")
+				if len(arnParts) > 0 {
+					distributionId := arnParts[len(arnParts)-1]
+
+					cfg := createAWSConfig(t, "us-east-1")
+					cloudfrontClient := cloudfront.NewFromConfig(cfg)
+					getDistributionInput := &cloudfront.GetDistributionInput{
+						Id: aws.String(distributionId),
+					}
+					updatedDistribution, err := cloudfrontClient.GetDistribution(context.TODO(), getDistributionInput)
+					if err != nil {
+						t.Logf("failed to get distribution config before delete: %v", err)
+					}
+
+					_, err = cloudfrontClient.DeleteDistribution(context.TODO(), &cloudfront.DeleteDistributionInput{
+						Id:      aws.String(distributionId),
+						IfMatch: updatedDistribution.ETag,
 					})
 					if err != nil {
-						t.Logf("failed to update distribution: %v", err)
+						t.Logf("failed to delete distribution: %v", err)
 					}
 
-					// Check if WAF is associated
-					distribution, err:= cloudfrontClient.GetDistribution(context.TODO(), getDistributionInput)
-					if err != nil {
-						t.Logf("failed to get distribution: %v", err)
-					}
-					if distribution.Distribution.DistributionConfig.WebACLId != nil && 
-						*distribution.Distribution.DistributionConfig.WebACLId != "" {
-						
-						t.Logf("Removing WAF association from CloudFront distribution %s before cleanup", distributionId)
-						
-						// Create a copy of the distribution config and remove WAF association
-						config := distribution.Distribution.DistributionConfig
-						config.WebACLId = aws.String("")
-						
-						// Update the distribution to remove WAF association
-						t.Logf("check new config: %v", config)
-						updateDistributionInput := &cloudfront.UpdateDistributionInput{
-							Id:                 aws.String(distributionId),
-							DistributionConfig: config,
-							IfMatch:           distribution.ETag,
-						}
-						
-						_, err := cloudfrontClient.UpdateDistribution(context.TODO(), updateDistributionInput)
-						if err != nil {
-							t.Logf("Warning: Failed to remove WAF association: %v", err)
-						} else {
-							t.Logf("Successfully removed WAF association from CloudFront distribution")
-							
-							// Wait for distribution to be deployed before proceeding with destroy
-							t.Logf("Waiting for CloudFront distribution to be deployed...")
-							time.Sleep(2 * time.Minute)
-						}
-					}
+					t.Logf("Deleted distribution: %s\n", distributionId)
 				}
-
-	
-				terraform.Destroy(t, terraformOptions)
-
-				updatedDistribution, err := cloudfrontClient.GetDistribution(context.TODO(), getDistributionInput)
-				if err != nil {
-					t.Logf("failed to get distribution config before delete: %v", err)
-				}
-
-				_, err = cloudfrontClient.DeleteDistribution(context.TODO(), &cloudfront.DeleteDistributionInput{
-					Id:      aws.String(distributionId),
-					IfMatch: updatedDistribution.ETag,
-				})
-				if err != nil {
-					t.Logf("failed to delete distribution: %v", err)
-				}
-
-				t.Logf("Deleted distribution: %s\n", distributionId)
 			}
 		}
 	}()
