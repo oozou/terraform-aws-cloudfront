@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"net/http"
@@ -9,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/cloudfront"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/oozou/terraform-test-util"
 	"github.com/stretchr/testify/assert"
@@ -71,9 +72,113 @@ func TestTerraformAWSCloudFrontModule(t *testing.T) {
 
 	// At the end of the test, run `terraform destroy` to clean up any resources that were created
 	defer func() {
+		t.Logf("Removing OAC and WAF association from CloudFront distribution")
+		// Remove CloudFront OAC and WAF association before destroying resources
+		if !t.Failed() {
+			// Only attempt cleanup if terraform apply succeeded
+			distributionArn, err := terraform.OutputE(t, terraformOptions, "cloudfront_distribution_arn")
+			t.Logf("CloudFront distribution ARN: %s", distributionArn)
+			if err == nil && distributionArn != "" {
+				// Extract distribution ID from ARN
+				arnParts := strings.Split(distributionArn, "/")
+				if len(arnParts) > 0 {
+					distributionId := arnParts[len(arnParts)-1]
+					
+					// Create AWS config for us-east-1 (CloudFront is global but API is in us-east-1)
+					cfg := createAWSConfig(t, "us-east-1")
+					cloudfrontClient := cloudfront.NewFromConfig(cfg)
+					
+					// Get current distribution configuration
+					getDistributionInput := &cloudfront.GetDistributionInput{
+						Id: aws.String(distributionId),
+					}
+					
+					distribution, err := cloudfrontClient.GetDistribution(context.TODO(), getDistributionInput)
+
+					distConfig := distribution.Distribution.DistributionConfig
+					t.Logf("CloudFront distribution ID: %s", distributionId)
+					if err == nil && distribution.Distribution != nil {
+
+						// Check if OAC is associated
+						// for _, origin := range distConfig.Origins.Items {
+						// 	if origin.S3OriginConfig != nil && origin.OriginAccessControlId != nil {
+						// 		fmt.Printf("Removing OAC from origin: %s\n", *origin.Id)
+						// 		origin.OriginAccessControlId = nil
+						// 	}
+						// }
+
+						for i := range distConfig.Origins.Items {
+							origin := distConfig.Origins.Items[i]
+							if origin.S3OriginConfig != nil && origin.OriginAccessControlId != nil {
+								fmt.Printf("Removing OAC from origin: %s\n", *origin.Id)
+								distConfig.Origins.Items[i].OriginAccessControlId = nil
+							}
+						}						
+						t.Logf("distConfig: %v", distConfig)
+						_, err = cloudfrontClient.UpdateDistribution(context.TODO(), &cloudfront.UpdateDistributionInput{
+							Id:                 aws.String(distributionId),
+							DistributionConfig: distConfig,
+							IfMatch:           distribution.ETag,
+						})
+						if err != nil {
+							t.Logf("failed to update distribution: %v", err)
+						}
+
+						// Check if WAF is associated
+						distribution, err:= cloudfrontClient.GetDistribution(context.TODO(), getDistributionInput)
+						if err != nil {
+							t.Logf("failed to get distribution: %v", err)
+						}
+						if distribution.Distribution.DistributionConfig.WebACLId != nil && 
+						   *distribution.Distribution.DistributionConfig.WebACLId != "" {
+							
+							t.Logf("Removing WAF association from CloudFront distribution %s before cleanup", distributionId)
+							
+							// Create a copy of the distribution config and remove WAF association
+							config := distribution.Distribution.DistributionConfig
+							config.WebACLId = aws.String("")
+							
+							// Update the distribution to remove WAF association
+							t.Logf("check new config: %v", config)
+							updateDistributionInput := &cloudfront.UpdateDistributionInput{
+								Id:                 aws.String(distributionId),
+								DistributionConfig: config,
+								IfMatch:           distribution.ETag,
+							}
+							
+							_, err := cloudfrontClient.UpdateDistribution(context.TODO(), updateDistributionInput)
+							if err != nil {
+								t.Logf("Warning: Failed to remove WAF association: %v", err)
+							} else {
+								t.Logf("Successfully removed WAF association from CloudFront distribution")
+								
+								// Wait for distribution to be deployed before proceeding with destroy
+								t.Logf("Waiting for CloudFront distribution to be deployed...")
+								time.Sleep(2 * time.Minute)
+							}
+						}
+					}
+
 		
-		//terraform.Destroy(t, terraformOptions)
-		
+					terraform.Destroy(t, terraformOptions)
+
+					updatedDistribution, err := cloudfrontClient.GetDistribution(context.TODO(), getDistributionInput)
+					if err != nil {
+						t.Logf("failed to get distribution config before delete: %v", err)
+					}
+
+					_, err = cloudfrontClient.DeleteDistribution(context.TODO(), &cloudfront.DeleteDistributionInput{
+						Id:      aws.String(distributionId),
+						IfMatch: updatedDistribution.ETag,
+					})
+					if err != nil {
+						t.Logf("failed to delete distribution: %v", err)
+					}
+
+					t.Logf("Deleted distribution: %s\n", distributionId)
+				}
+			}
+		}
 	}()
 
 	// This will run `terraform init` and `terraform apply` and fail the test if there are any errors
@@ -149,13 +254,13 @@ func TestTerraformAWSCloudFrontModule(t *testing.T) {
 }
 
 
-// Helper function to create AWS session
-func createAWSSession(t *testing.T, region string) *session.Session {
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(region),
-	})
-	require.NoError(t, err, "Failed to create AWS session")
-	return sess
+// Helper function to create AWS config
+func createAWSConfig(t *testing.T, region string) aws.Config {
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion(region),
+	)
+	require.NoError(t, err, "Failed to create AWS config")
+	return cfg
 }
 
 // Test function to verify CloudFront distribution exists and is properly configured
@@ -173,16 +278,16 @@ func testCloudFrontDistributionExists(t *testing.T, terraformOptions *terraform.
 	require.Greater(t, len(arnParts), 0, "Invalid CloudFront distribution ARN format")
 	distributionId := arnParts[len(arnParts)-1]
 
-	// Create AWS session for us-east-1 (CloudFront is global but API is in us-east-1)
-	sess := createAWSSession(t, "us-east-1")
-	cloudfrontClient := cloudfront.New(sess)
+	// Create AWS config for us-east-1 (CloudFront is global but API is in us-east-1)
+	cfg := createAWSConfig(t, "us-east-1")
+	cloudfrontClient := cloudfront.NewFromConfig(cfg)
 
 	// Get distribution details
 	getDistributionInput := &cloudfront.GetDistributionInput{
 		Id: aws.String(distributionId),
 	}
 
-	distribution, err := cloudfrontClient.GetDistribution(getDistributionInput)
+	distribution, err := cloudfrontClient.GetDistribution(context.TODO(), getDistributionInput)
 	require.NoError(t, err, "Failed to get CloudFront distribution")
 	require.NotNil(t, distribution.Distribution, "CloudFront distribution should not be nil")
 
@@ -211,16 +316,16 @@ func testWAFCreatedAndAssociated(t *testing.T, terraformOptions *terraform.Optio
 	require.Greater(t, len(arnParts), 0, "Invalid CloudFront distribution ARN format")
 	distributionId := arnParts[len(arnParts)-1]
 
-	// Create AWS session for us-east-1 (WAF for CloudFront is in us-east-1)
-	sess := createAWSSession(t, "us-east-1")
-	cloudfrontClient := cloudfront.New(sess)
+	// Create AWS config for us-east-1 (WAF for CloudFront is in us-east-1)
+	cfg := createAWSConfig(t, "us-east-1")
+	cloudfrontClient := cloudfront.NewFromConfig(cfg)
 
 	// Get distribution details
 	getDistributionInput := &cloudfront.GetDistributionInput{
 		Id: aws.String(distributionId),
 	}
 
-	distribution, err := cloudfrontClient.GetDistribution(getDistributionInput)
+	distribution, err := cloudfrontClient.GetDistribution(context.TODO(), getDistributionInput)
 	require.NoError(t, err, "Failed to get CloudFront distribution")
 	require.NotNil(t, distribution.Distribution, "CloudFront distribution should not be nil")
 
@@ -229,58 +334,6 @@ func testWAFCreatedAndAssociated(t *testing.T, terraformOptions *terraform.Optio
 	assert.NotNil(t, webAclId, "CloudFront distribution should have WAF associated")
 	assert.NotEmpty(t, *webAclId, "WAF Web ACL ID should not be empty")
 
-	// Debug: Print webAclId
-	t.Logf("DEBUG - webAclId: %s", *webAclId)
-
-	// Get WAF details
-	// getWebAclInput := &wafv2.GetWebACLInput{
-	// 	Id:    webAclId,
-	// 	Name:  aws.String("terratest-test-cf-waf"),
-	// 	Scope: aws.String("CLOUDFRONT"),
-	// }
-
-	// getWebAclInput := &wafv2.GetWebACLInput{
-    //     ResourceArn: aws.String(webAclId),
-    // }
-
-	// webAcl, err := wafClient.GetWebACL(getWebAclInput)
-	// t.Logf("DEBUG - webAcl: %s", *webAcl)
-	// if err != nil {
-	// 	// Try to list WAFs to find the correct one
-	// 	listWebAclsInput := &wafv2.ListWebACLsInput{
-	// 		Scope: aws.String("CLOUDFRONT"),
-	// 	}
-	// 	webAcls, listErr := wafClient.ListWebACLs(listWebAclsInput)
-	// 	require.NoError(t, listErr, "Failed to list WAF Web ACLs")
-
-	// 	// Debug: Print all webAcl summaries
-	// 	t.Logf("DEBUG - Total WebACLs found: %d", len(webAcls.WebACLs))
-	// 	for i, webAclSummary := range webAcls.WebACLs {
-	// 		t.Logf("DEBUG - WebACL[%d] Summary: %+v", i, webAclSummary)
-	// 		t.Logf("DEBUG - WebACL[%d] ID: %s", i, *webAclSummary.Id)
-	// 		t.Logf("DEBUG - WebACL[%d] Name: %s", i, *webAclSummary.Name)
-	// 		t.Logf("DEBUG - WebACL[%d] ARN: %s", i, *webAclSummary.ARN)
-	// 	}
-
-	// 	// Find WAF by ID
-	// 	var foundWebAcl *wafv2.WebACL
-	// 	for _, webAclSummary := range webAcls.WebACLs {
-	// 		t.Logf("DEBUG - Comparing WebACL ID: %s with target ID: %s", *webAclSummary.Id, *webAclId)
-	// 		if strings.Contains(*webAclId, *webAclSummary.Id) {
-	// 			t.Logf("DEBUG - Found matching WebACL: %+v", webAclSummary)
-	// 			//webAcl, err = wafClient.GetWebACL(getWebAclInput)
-	// 			//require.NoError(t, err, "Failed to get WAF Web ACL details")
-	// 			foundWebAcl = webAcl.WebACL
-	// 			break
-	// 		}
-	// 	}
-	// 	require.NotNil(t, foundWebAcl, "WAF Web ACL should be found")
-	// }
-
-	// require.NotNil(t, webAcl.WebACL, "WAF Web ACL should not be nil")
-
-	// // Verify WAF has rules
-	// assert.Greater(t, len(webAcl.WebACL.Rules), 0, "WAF should have at least one rule")
 
 	t.Logf("WAF Web ACL %s is properly created and associated with CloudFront distribution %s", *webAclId, distributionId)
 }
@@ -299,28 +352,28 @@ func testCloudFrontLogsCreated(t *testing.T, terraformOptions *terraform.Options
 	require.Greater(t, len(arnParts), 0, "Invalid CloudFront distribution ARN format")
 	distributionId := arnParts[len(arnParts)-1]
 
-	// Create AWS session
-	sess := createAWSSession(t, awsRegion)
-	s3Client := s3.New(sess)
+	// Create AWS config
+	cfg := createAWSConfig(t, awsRegion)
+	s3Client := s3.NewFromConfig(cfg)
 
 	// Verify log bucket exists
 	headBucketInput := &s3.HeadBucketInput{
 		Bucket: aws.String(logBucketName),
 	}
 
-	_, err := s3Client.HeadBucket(headBucketInput)
+	_, err := s3Client.HeadBucket(context.TODO(), headBucketInput)
 	require.NoError(t, err, "Log bucket should exist")
 
-	// Create AWS session for us-east-1 (CloudFront is global but API is in us-east-1)
-	sessCF := createAWSSession(t, "us-east-1")
-	cloudfrontClient := cloudfront.New(sessCF)
+	// Create AWS config for us-east-1 (CloudFront is global but API is in us-east-1)
+	cfgCF := createAWSConfig(t, "us-east-1")
+	cloudfrontClient := cloudfront.NewFromConfig(cfgCF)
 
 	// Get distribution details to verify logging configuration
 	getDistributionInput := &cloudfront.GetDistributionInput{
 		Id: aws.String(distributionId),
 	}
 
-	distribution, err := cloudfrontClient.GetDistribution(getDistributionInput)
+	distribution, err := cloudfrontClient.GetDistribution(context.TODO(), getDistributionInput)
 	require.NoError(t, err, "Failed to get CloudFront distribution")
 	require.NotNil(t, distribution.Distribution, "CloudFront distribution should not be nil")
 
@@ -343,33 +396,6 @@ func testS3AccessViaCloudFront(t *testing.T, terraformOptions *terraform.Options
 	assert.NotEmpty(t, distributionDomainName, "CloudFront distribution domain name should not be empty")
 	assert.NotEmpty(t, s3BucketName, "S3 bucket name should not be empty")
 
-	// // Create AWS session
-	// sess := createAWSSession(t, awsRegion)
-	// s3Client := s3.New(sess)
-
-	// // Create a test file in S3 bucket
-	// testContent := "Hello from CloudFront test!"
-	// testKey := "test-file.txt"
-
-	// putObjectInput := &s3.PutObjectInput{
-	// 	Bucket: aws.String(s3BucketName),
-	// 	Key:    aws.String(testKey),
-	// 	Body:   strings.NewReader(testContent),
-	// }
-
-	// _, err := s3Client.PutObject(putObjectInput)
-	// require.NoError(t, err, "Failed to put test object in S3 bucket")
-
-	// Clean up the test file after the test
-	// defer func() {
-	// 	deleteObjectInput := &s3.DeleteObjectInput{
-	// 		Bucket: aws.String(s3BucketName),
-	// 		Key:    aws.String(testKey),
-	// 	}
-	// 	s3Client.DeleteObject(deleteObjectInput)
-	// }()
-
-	// Wait a bit for CloudFront to propagate
 	time.Sleep(30 * time.Second)
 
 	// Test access via CloudFront

@@ -201,16 +201,16 @@ module "cloudfront_distribution" {
     }
   ]
   # Default behavior
-  default_cache_behavior = {    
-      path_pattern           = "/*"
-      target_origin_id       = module.s3_bucket.bucket_id
-      viewer_protocol_policy = "redirect-to-https"
-      allowed_methods        = ["GET", "HEAD", "OPTIONS"]
-      cached_methods         = ["GET", "HEAD", "OPTIONS"]
-      cache_policy_id        = "658327ea-f89d-4fab-a63d-7e88639e58f6" # Managed-CachingOptimized
-      compress               = true
-      use_forwarded_values   = false
-    }
+  default_cache_behavior = {
+    path_pattern           = "/*"
+    target_origin_id       = module.s3_bucket.bucket_id
+    viewer_protocol_policy = "redirect-to-https"
+    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
+    cached_methods         = ["GET", "HEAD", "OPTIONS"]
+    cache_policy_id        = "658327ea-f89d-4fab-a63d-7e88639e58f6" # Managed-CachingOptimized
+    compress               = true
+    use_forwarded_values   = false
+  }
 
   log_aggregation_s3_bucket_name = aws_s3_bucket.cloudfront_log_bucket.id
 
