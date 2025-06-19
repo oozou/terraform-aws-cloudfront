@@ -409,7 +409,12 @@ func testS3AccessViaCloudFront(t *testing.T, terraformOptions *terraform.Options
 	// Make request to CloudFront
 	resp, err := client.Get(cloudfrontUrl)
 	require.NoError(t, err, "Failed to make request to CloudFront URL")
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			// optional: log or handle error
+			fmt.Printf("failed to close response body: %v\n", err)
+		}
+	}()
 
 	// Verify response status
 	assert.Equal(t, http.StatusOK, resp.StatusCode, "CloudFront should return 200 OK for valid S3 object")
