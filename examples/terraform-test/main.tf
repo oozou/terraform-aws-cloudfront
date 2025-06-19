@@ -24,7 +24,7 @@ data "aws_iam_policy_document" "cloudfront_log_policy" {
 
 # Create S3 bucket for CloudFront logs manually to ensure ACL compatibility
 resource "aws_s3_bucket" "cloudfront_log_bucket" {
-  bucket        = format("%s-%s-%s-cdn-log-bucket", var.prefix, var.environment, var.name)
+  bucket        = format("%s-%s-%s-%s-cdn-log-bucket", var.prefix, var.environment, var.name, data.aws_caller_identity.main.account_id)
   force_destroy = true
 
   tags = merge(var.custom_tags, {
