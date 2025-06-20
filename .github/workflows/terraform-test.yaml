@@ -25,5 +25,5 @@ jobs:
       go_version: '1.21'
       test_example_path: 'examples/terraform-test'
       timeout_minutes: 60
-      module_name: 'AWS Aurora'
+      module_name: 'AWS Cloudfront'
       iam_oidc_role: 'arn:aws:iam::562563527952:role/oozou-internal-devops-github-action-oidc-role' # oozou internal account
