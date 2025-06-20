@@ -70,15 +70,15 @@ func TestTerraformAWSCloudFrontModule(t *testing.T) {
 		},
 	})
 
+	var distributionArn string
 	// At the end of the test, run `terraform destroy` to clean up any resources that were created
 	defer func() {
 		t.Logf("Removing OAC and WAF association from CloudFront distribution")
 		// Remove CloudFront OAC and WAF association before destroying resources
 		if !t.Failed() {
 			// Only attempt cleanup if terraform apply succeeded
-			distributionArn, err := terraform.OutputE(t, terraformOptions, "cloudfront_distribution_arn")
 			t.Logf("CloudFront distribution ARN: %s", distributionArn)
-			if err == nil && distributionArn != "" {
+			if distributionArn != "" {
 				// Extract distribution ID from ARN
 				arnParts := strings.Split(distributionArn, "/")
 				if len(arnParts) > 0 {
@@ -105,7 +105,6 @@ func TestTerraformAWSCloudFrontModule(t *testing.T) {
 								distConfig.Origins.Items[i].OriginAccessControlId = nil
 							}
 						}						
-						t.Logf("distConfig: %v", distConfig)
 						_, err = cloudfrontClient.UpdateDistribution(context.TODO(), &cloudfront.UpdateDistributionInput{
 							Id:                 aws.String(distributionId),
 							DistributionConfig: distConfig,
@@ -156,9 +155,8 @@ func TestTerraformAWSCloudFrontModule(t *testing.T) {
 		terraform.Destroy(t, terraformOptions)
 		if !t.Failed() {
 			// Only attempt cleanup if terraform apply succeeded
-			distributionArn, err := terraform.OutputE(t, terraformOptions, "cloudfront_distribution_arn")
 			t.Logf("CloudFront distribution ARN: %s", distributionArn)
-			if err == nil && distributionArn != "" {
+			if distributionArn != "" {
 				// Extract distribution ID from ARN
 				arnParts := strings.Split(distributionArn, "/")
 				if len(arnParts) > 0 {
@@ -190,6 +188,15 @@ func TestTerraformAWSCloudFrontModule(t *testing.T) {
 
 	// This will run `terraform init` and `terraform apply` and fail the test if there are any errors
 	terraform.InitAndApply(t, terraformOptions)
+
+	// Capture the output *before* the defer/destroy
+	var err error
+	
+	distributionArn, err = terraform.OutputE(t, terraformOptions, "cloudfront_distribution_arn")
+	if err != nil {
+		t.Fatalf("Failed to get distribution ARN: %v", err)
+	}
+	t.Logf("Captured CloudFront ARN: %s", distributionArn)
 
 	// If terraform apply failed, don't run the individual tests
 	if t.Failed() {
